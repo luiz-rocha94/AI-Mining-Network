@@ -25,6 +25,15 @@ PYTHON_DIRECT = [
     "mcp",
 ]
 NODE_DIRECT = [
+    "@libp2p/crypto",
+    "@libp2p/gossipsub",
+    "@libp2p/identify",
+    "@libp2p/mdns",
+    "@libp2p/memory",
+    "@libp2p/noise",
+    "@libp2p/tcp",
+    "@libp2p/yamux",
+    "@multiformats/multiaddr",
     "@openzeppelin/contracts",
     "@openzeppelin/merkle-tree",
     "@nomicfoundation/hardhat-ethers",
@@ -36,6 +45,9 @@ NODE_DIRECT = [
     "typescript",
     "react",
     "react-dom",
+    "ajv",
+    "ajv-formats",
+    "libp2p",
 ]
 
 

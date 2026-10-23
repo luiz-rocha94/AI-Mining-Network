@@ -139,3 +139,35 @@ The Solidity primitive deliberately does not verify drand, randomness-derived va
 ## Event audit
 
 Local events are append-only through the API and include sequence, payload, previous hash, and event hash per task. Any alteration within the stored chain changes a later digest. This is tamper-evident only if an independently retained head hash exists; a machine administrator able to rewrite the complete SQLite database can rewrite the chain. Production peers should gossip signed events and anchor checkpoints in independently replicated storage/attestations.
+
+## Peer messaging and delivery (P3)
+
+The `@ai-mining-network/networking` package uses libp2p TCP + Noise + Yamux,
+identify, strict-signed GossipSub, and mDNS. `SkillManifest`,
+`SkillBenchmark`, miner/validator capabilities and offers, quotes, contracts,
+commitments, assignments, verification receipts/decisions, settlements,
+ratings, and identity transitions are allowlisted for the public
+`amn/protocol/v2/public` topic. `CustomerTask` and unknown/private kinds are
+direct-only. Private messages are not stored in the public event log. The
+direct RPC uses a readiness handshake and a bounded four-byte big-endian
+length-prefixed canonical JSON frame; Noise encrypts the peer connection.
+
+The application must provide an active EIP-712 identity resolver, a mapping
+from authenticated libp2p PeerId to AMN principal, and private sender/recipient
+authorization callbacks. The direct sender and recipient must map to their
+connected peers, and a response must be signed by the responder's mapped
+principal. libp2p PeerId authentication and AMN EIP-712 signatures are separate
+checks: neither establishes personhood or Sybil resistance.
+
+GossipSub delivery is best effort. On connection, one deterministically chosen
+peer initiates bounded public-event anti-entropy in both directions. Active,
+unexpired, non-revoked signed events are paged in stable timestamp/signer/ID
+order. The local durable event store rejects changed bodies under an existing
+message ID. Reconnection repairs missed public events; this is eventual
+peer-to-peer synchronization, not a global consensus log. Operators can call
+`syncPublicEvents(peerId)` to reconcile a connected peer again. mDNS is limited
+to a local network; remote participants need bootstrap addresses or another
+discovery module. There is no DHT, relay, NAT traversal, or network-wide
+identity/Sybil policy in P3. See
+[`peer-networking.md`](architecture/peer-networking.md) for configuration and
+operating limits.

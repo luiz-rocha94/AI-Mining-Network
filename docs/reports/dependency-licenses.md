@@ -67,11 +67,12 @@ Generated from Python distribution metadata and installed pnpm package manifests
 
 ## Node dependencies
 
-Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(MIT OR CC0-1.0)` 3, `0BSD` 3, `Apache-2.0` 4, `BSD-3-Clause` 11, `BlueOak-1.0.0` 4, `CC-BY-4.0` 1, `ISC` 27, `MIT` 248, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 2.
+Resolved packages: **411**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(MIT OR CC0-1.0)` 3, `0BSD` 3, `Apache-2.0` 8, `Apache-2.0 OR MIT` 54, `BSD-3-Clause` 14, `BlueOak-1.0.0` 4, `CC-BY-4.0` 1, `ISC` 28, `MIT` 286, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 3.
 
 | Package | Version | License metadata | Direct dependency |
 |---|---:|---|---|
 | `@adraffy/ens-normalize` | 1.11.1 | MIT | transitive |
+| `@ai-mining-network/networking` | 0.1.0 | UNKNOWN — review required | transitive |
 | `@ai-mining-network/protocol` | 2.0.0 | UNKNOWN — review required | transitive |
 | `@babel/code-frame` | 7.29.7 | MIT | transitive |
 | `@babel/compat-data` | 7.29.7 | MIT | transitive |
@@ -92,6 +93,11 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@babel/template` | 7.29.7 | MIT | transitive |
 | `@babel/traverse` | 7.29.10 | MIT | transitive |
 | `@babel/types` | 7.29.8 | MIT | transitive |
+| `@chainsafe/as-chacha20poly1305` | 0.1.0 | Apache-2.0 | transitive |
+| `@chainsafe/as-sha256` | 1.2.5 | Apache-2.0 | transitive |
+| `@chainsafe/is-ip` | 2.1.0 | MIT | transitive |
+| `@chainsafe/netmask` | 2.0.0 | MIT | transitive |
+| `@dnsquery/dns-packet` | 6.1.1 | MIT | transitive |
 | `@esbuild/win32-x64` | 0.28.2 | MIT | transitive |
 | `@ethereumjs/common` | 3.2.0 | MIT | transitive |
 | `@ethereumjs/rlp` | 4.0.1 | MPL-2.0 | transitive |
@@ -124,21 +130,45 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@jridgewell/resolve-uri` | 3.1.2 | MIT | transitive |
 | `@jridgewell/sourcemap-codec` | 1.6.0 | MIT | transitive |
 | `@jridgewell/trace-mapping` | 0.3.31 | MIT | transitive |
+| `@leichtgewicht/ip-codec` | 2.0.5 | MIT | transitive |
+| `@libp2p/crypto` | 5.2.0 | Apache-2.0 OR MIT | yes |
+| `@libp2p/gossipsub` | 17.2.1 | Apache-2.0 OR MIT | yes |
+| `@libp2p/identify` | 4.1.18 | Apache-2.0 OR MIT | yes |
+| `@libp2p/interface-internal` | 3.2.2 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/interface` | 3.4.0 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/logger` | 6.2.16 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/mdns` | 12.0.36 | Apache-2.0 OR MIT | yes |
+| `@libp2p/memory` | 2.0.32 | Apache-2.0 OR MIT | yes |
+| `@libp2p/multistream-select` | 7.0.32 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/noise` | 17.0.7 | Apache-2.0 OR MIT | yes |
+| `@libp2p/peer-collections` | 7.0.32 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/peer-id` | 6.0.18 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/peer-record` | 9.0.19 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/peer-store` | 12.0.32 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/tcp` | 11.0.32 | Apache-2.0 OR MIT | yes |
+| `@libp2p/utils` | 7.4.5 | Apache-2.0 OR MIT | transitive |
+| `@libp2p/yamux` | 8.0.7 | Apache-2.0 OR MIT | yes |
 | `@metamask/abi-utils` | 2.0.4 | (Apache-2.0 AND MIT) | transitive |
 | `@metamask/superstruct` | 3.4.1 | MIT | transitive |
 | `@metamask/utils` | 9.3.0 | ISC | transitive |
+| `@multiformats/dns` | 1.0.15 | Apache-2.0 OR MIT | transitive |
+| `@multiformats/multiaddr-matcher` | 3.0.2 | Apache-2.0 OR MIT | transitive |
+| `@multiformats/multiaddr` | 13.0.3 | Apache-2.0 OR MIT | yes |
 | `@my-scope/package-a` | 0.0.0 | MIT | transitive |
 | `@my-scope/package-b` | 0.0.0 | MIT | transitive |
 | `@noble/ciphers` | 1.3.0 | MIT | transitive |
+| `@noble/ciphers` | 2.4.0 | MIT | transitive |
 | `@noble/curves` | 1.2.0 | MIT | transitive |
 | `@noble/curves` | 1.4.2 | MIT | transitive |
 | `@noble/curves` | 1.8.2 | MIT | transitive |
 | `@noble/curves` | 1.9.0 | MIT | transitive |
+| `@noble/curves` | 2.4.0 | MIT | transitive |
 | `@noble/hashes` | 1.2.0 | MIT | transitive |
 | `@noble/hashes` | 1.3.2 | MIT | transitive |
 | `@noble/hashes` | 1.4.0 | MIT | transitive |
 | `@noble/hashes` | 1.7.2 | MIT | transitive |
 | `@noble/hashes` | 1.8.0 | MIT | transitive |
+| `@noble/hashes` | 2.4.0 | MIT | transitive |
 | `@noble/secp256k1` | 1.7.1 | MIT | transitive |
 | `@nomicfoundation/edr-darwin-arm64` | 0.12.0-next.23 | MIT | transitive |
 | `@nomicfoundation/edr-darwin-x64` | 0.12.0-next.23 | MIT | transitive |
@@ -172,19 +202,28 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@sentry/tracing` | 5.30.0 | MIT | transitive |
 | `@sentry/types` | 5.30.0 | BSD-3-Clause | transitive |
 | `@sentry/utils` | 5.30.0 | BSD-3-Clause | transitive |
+| `@sindresorhus/fnv1a` | 3.1.0 | MIT | transitive |
+| `@sinonjs/commons` | 3.0.1 | BSD-3-Clause | transitive |
+| `@sinonjs/fake-timers` | 15.4.0 | BSD-3-Clause | transitive |
 | `@types/babel__core` | 7.20.5 | MIT | transitive |
 | `@types/babel__generator` | 7.27.0 | MIT | transitive |
 | `@types/babel__template` | 7.4.4 | MIT | transitive |
 | `@types/babel__traverse` | 7.28.0 | MIT | transitive |
 | `@types/debug` | 4.1.13 | MIT | transitive |
+| `@types/dns-packet` | 5.6.5 | MIT | transitive |
 | `@types/estree` | 1.0.9 | MIT | transitive |
 | `@types/ms` | 2.1.0 | MIT | transitive |
+| `@types/multicast-dns` | 7.2.4 | MIT | transitive |
 | `@types/node` | 22.7.5 | MIT | transitive |
+| `@types/sinon` | 22.0.1 | MIT | transitive |
 | `@vitejs/plugin-react` | 5.2.0 | MIT | yes |
+| `abort-error` | 1.0.2 | Apache-2.0 OR MIT | transitive |
 | `adm-zip` | 0.4.16 | MIT | transitive |
 | `aes-js` | 4.0.0-beta.5 | MIT | transitive |
 | `agent-base` | 6.0.2 | MIT | transitive |
 | `aggregate-error` | 3.1.0 | MIT | transitive |
+| `ajv-formats` | 3.0.1 | MIT | yes |
+| `ajv` | 8.20.0 | MIT | yes |
 | `ansi-align` | 3.0.1 | ISC | transitive |
 | `ansi-colors` | 4.1.3 | MIT | transitive |
 | `ansi-escapes` | 4.3.2 | MIT | transitive |
@@ -192,9 +231,11 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `ansi-regex` | 6.4.0 | MIT | transitive |
 | `ansi-styles` | 4.3.0 | MIT | transitive |
 | `ansi-styles` | 6.2.3 | MIT | transitive |
+| `any-signal` | 4.2.0 | Apache-2.0 OR MIT | transitive |
 | `argparse` | 2.0.1 | Python-2.0 | transitive |
 | `balanced-match` | 1.0.2 | MIT | transitive |
 | `baseline-browser-mapping` | 2.11.30 | Apache-2.0 | transitive |
+| `benchmark` | 1.0.0 | ISC | transitive |
 | `bn.js` | 4.12.5 | MIT | transitive |
 | `bn.js` | 5.2.5 | MIT | transitive |
 | `boxen` | 5.1.2 | MIT | transitive |
@@ -206,6 +247,7 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `bytes` | 3.1.2 | MIT | transitive |
 | `camelcase` | 6.3.0 | MIT | transitive |
 | `caniuse-lite` | 1.0.30001818 | CC-BY-4.0 | transitive |
+| `cborg` | 6.1.4 | Apache-2.0 | transitive |
 | `chalk` | 4.1.2 | MIT | transitive |
 | `chokidar` | 4.0.3 | MIT | transitive |
 | `ci-info` | 2.0.0 | MIT | transitive |
@@ -220,10 +262,14 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `cookie` | 0.4.2 | MIT | transitive |
 | `crc-32` | 1.2.2 | Apache-2.0 | transitive |
 | `cross-spawn` | 7.0.6 | MIT | transitive |
+| `datastore-core` | 12.0.1 | Apache-2.0 OR MIT | transitive |
 | `debug` | 4.4.3 | MIT | transitive |
 | `decamelize` | 4.0.0 | MIT | transitive |
+| `delay` | 7.0.0 | MIT | transitive |
+| `denque` | 2.1.0 | Apache-2.0 | transitive |
 | `depd` | 2.0.0 | MIT | transitive |
 | `diff` | 7.0.0 | BSD-3-Clause | transitive |
+| `dns-packet` | 5.6.1 | MIT | transitive |
 | `eastasianwidth` | 0.2.0 | MIT | transitive |
 | `electron-to-chromium` | 1.5.463 | ISC | transitive |
 | `elliptic` | 6.6.1 | MIT | transitive |
@@ -238,6 +284,9 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `ethereum-cryptography` | 2.2.1 | MIT | transitive |
 | `ethereum-cryptography` | 3.2.0 | MIT | transitive |
 | `ethers` | 6.17.0 | MIT | yes |
+| `eventemitter3` | 5.0.4 | MIT | transitive |
+| `fast-deep-equal` | 3.1.3 | MIT | transitive |
+| `fast-uri` | 3.1.9 | BSD-3-Clause | transitive |
 | `fdir` | 6.5.0 | MIT | transitive |
 | `find-up` | 5.0.0 | MIT | transitive |
 | `flat` | 5.0.2 | BSD-3-Clause | transitive |
@@ -252,6 +301,7 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `hardhat` | 2.29.1 | MIT | yes |
 | `has-flag` | 4.0.0 | MIT | transitive |
 | `hash.js` | 1.1.7 | MIT | transitive |
+| `hashlru` | 2.3.0 | MIT | transitive |
 | `he` | 1.2.0 | MIT | transitive |
 | `hmac-drbg` | 1.0.1 | MIT | transitive |
 | `http-errors` | 2.0.1 | MIT | transitive |
@@ -260,21 +310,44 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `immutable` | 4.3.9 | MIT | transitive |
 | `indent-string` | 4.0.0 | MIT | transitive |
 | `inherits` | 2.0.4 | ISC | transitive |
+| `interface-datastore` | 10.0.1 | Apache-2.0 OR MIT | transitive |
+| `interface-store` | 8.0.0 | Apache-2.0 OR MIT | transitive |
 | `io-ts` | 1.10.4 | MIT | transitive |
+| `is-electron` | 2.2.2 | MIT | transitive |
 | `is-fullwidth-code-point` | 3.0.0 | MIT | transitive |
+| `is-loopback-addr` | 2.1.0 | MIT | transitive |
+| `is-network-error` | 1.3.2 | MIT | transitive |
 | `is-path-inside` | 3.0.3 | MIT | transitive |
 | `is-plain-obj` | 2.1.0 | MIT | transitive |
 | `is-unicode-supported` | 0.1.0 | MIT | transitive |
 | `isexe` | 2.0.0 | ISC | transitive |
+| `it-all` | 3.0.11 | Apache-2.0 OR MIT | transitive |
+| `it-drain` | 3.0.12 | Apache-2.0 OR MIT | transitive |
+| `it-filter` | 3.1.6 | Apache-2.0 OR MIT | transitive |
+| `it-length-prefixed` | 11.0.1 | Apache-2.0 OR MIT | transitive |
+| `it-map` | 3.1.6 | Apache-2.0 OR MIT | transitive |
+| `it-merge` | 3.0.15 | Apache-2.0 OR MIT | transitive |
+| `it-parallel` | 3.0.16 | Apache-2.0 OR MIT | transitive |
+| `it-peekable` | 3.0.10 | Apache-2.0 OR MIT | transitive |
+| `it-pipe` | 3.0.1 | Apache-2.0 OR MIT | transitive |
+| `it-pushable` | 3.2.4 | Apache-2.0 OR MIT | transitive |
+| `it-queue` | 1.1.4 | Apache-2.0 OR MIT | transitive |
+| `it-queueless-pushable` | 2.0.5 | Apache-2.0 OR MIT | transitive |
+| `it-reader` | 7.0.0 | Apache-2.0 OR MIT | transitive |
+| `it-sort` | 3.0.11 | Apache-2.0 OR MIT | transitive |
+| `it-stream-types` | 2.0.4 | Apache-2.0 OR MIT | transitive |
+| `it-take` | 3.0.11 | Apache-2.0 OR MIT | transitive |
 | `jackspeak` | 3.4.3 | BlueOak-1.0.0 | transitive |
 | `js-sha3` | 0.8.0 | MIT | transitive |
 | `js-tokens` | 4.0.0 | MIT | transitive |
 | `js-yaml` | 4.3.2 | MIT | transitive |
 | `jsesc` | 3.1.0 | MIT | transitive |
+| `json-schema-traverse` | 1.0.0 | MIT | transitive |
 | `json-stream-stringify` | 3.1.7 | MIT | transitive |
 | `json5` | 2.2.3 | MIT | transitive |
 | `jsonfile` | 4.0.0 | MIT | transitive |
 | `keccak` | 3.0.4 | MIT | transitive |
+| `libp2p` | 3.5.1 | Apache-2.0 OR MIT | yes |
 | `locate-path` | 6.0.0 | MIT | transitive |
 | `lodash.isequal` | 4.5.0 | MIT | transitive |
 | `lodash` | 4.18.1 | MIT | transitive |
@@ -282,6 +355,7 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `lru-cache` | 10.4.3 | ISC | transitive |
 | `lru-cache` | 5.1.1 | ISC | transitive |
 | `lru_map` | 0.3.3 | MIT | transitive |
+| `main-event` | 1.0.5 | Apache-2.0 OR MIT | transitive |
 | `memorystream` | 0.3.1 | UNKNOWN — review required | transitive |
 | `micro-eth-signer` | 0.14.0 | MIT | transitive |
 | `micro-ftch` | 0.3.1 | MIT | transitive |
@@ -293,17 +367,28 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `mnemonist` | 0.38.5 | MIT | transitive |
 | `mocha` | 11.8.0 | MIT | transitive |
 | `monorepo-symlink-test` | 0.0.0 | MIT | transitive |
+| `mortice` | 3.3.1 | Apache-2.0 OR MIT | transitive |
 | `ms` | 2.1.3 | MIT | transitive |
+| `ms` | 4.0.0-nightly.202508271359 | MIT | transitive |
+| `multicast-dns` | 7.2.5 | MIT | transitive |
+| `multiformats` | 14.0.5 | Apache-2.0 OR MIT | transitive |
 | `mylib` | 0.0.0 | ISC | transitive |
 | `nanoid` | 3.3.20 | MIT | transitive |
+| `nanoid` | 6.0.2 | MIT | transitive |
+| `netmask` | 2.1.1 | MIT | transitive |
 | `node-addon-api` | 2.0.2 | MIT | transitive |
 | `node-gyp-build` | 4.8.4 | MIT | transitive |
 | `node-releases` | 2.0.59 | MIT | transitive |
 | `obliterator` | 2.0.5 | MIT | transitive |
 | `os-tmpdir` | 1.0.2 | MIT | transitive |
+| `p-defer` | 4.0.1 | MIT | transitive |
+| `p-event` | 8.0.1 | MIT | transitive |
 | `p-limit` | 3.1.0 | MIT | transitive |
 | `p-locate` | 5.0.0 | MIT | transitive |
 | `p-map` | 4.0.0 | MIT | transitive |
+| `p-queue` | 9.3.5 | MIT | transitive |
+| `p-retry` | 8.0.1 | MIT | transitive |
+| `p-timeout` | 7.0.2 | MIT | transitive |
 | `package-json-from-dist` | 1.0.1 | BlueOak-1.0.0 | transitive |
 | `path-exists` | 4.0.0 | MIT | transitive |
 | `path-key` | 3.1.1 | MIT | transitive |
@@ -313,6 +398,11 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `picomatch` | 4.0.7 | MIT | transitive |
 | `pony-cause` | 2.1.11 | 0BSD | transitive |
 | `postcss` | 8.5.31 | MIT | transitive |
+| `progress-events` | 1.1.0 | Apache-2.0 OR MIT | transitive |
+| `protons-runtime` | 7.1.2 | Apache-2.0 OR MIT | transitive |
+| `race-event` | 1.6.1 | Apache-2.0 OR MIT | transitive |
+| `race-signal` | 2.0.2 | Apache-2.0 OR MIT | transitive |
+| `random-int` | 3.1.0 | MIT | transitive |
 | `randombytes` | 2.1.0 | MIT | transitive |
 | `raw-body` | 2.5.3 | MIT | transitive |
 | `react-dom` | 19.3.1 | MIT | yes |
@@ -321,6 +411,7 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `readable-stream` | 3.6.2 | MIT | transitive |
 | `readdirp` | 4.1.2 | MIT | transitive |
 | `require-directory` | 2.1.1 | MIT | transitive |
+| `require-from-string` | 2.0.2 | MIT | transitive |
 | `resolve` | 1.17.0 | MIT | transitive |
 | `rollup` | 4.64.12 | MIT | transitive |
 | `safe-buffer` | 5.2.1 | MIT | transitive |
@@ -347,27 +438,37 @@ Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `strip-ansi` | 6.0.1 | MIT | transitive |
 | `strip-ansi` | 7.2.0 | MIT | transitive |
 | `strip-json-comments` | 3.1.1 | MIT | transitive |
+| `supports-color` | 10.2.2 | MIT | transitive |
 | `supports-color` | 7.2.0 | MIT | transitive |
 | `supports-color` | 8.1.1 | MIT | transitive |
+| `thunky` | 1.1.0 | MIT | transitive |
 | `tinyglobby` | 0.2.17 | MIT | transitive |
 | `tmp` | 0.0.33 | MIT | transitive |
 | `toidentifier` | 1.0.1 | MIT | transitive |
 | `tslib` | 1.14.1 | 0BSD | transitive |
 | `tslib` | 2.7.0 | 0BSD | transitive |
 | `tsort` | 0.0.1 | MIT | transitive |
+| `type-detect` | 4.0.8 | MIT | transitive |
 | `type-fest` | 0.20.2 | (MIT OR CC0-1.0) | transitive |
 | `type-fest` | 0.21.3 | (MIT OR CC0-1.0) | transitive |
 | `type-fest` | 0.7.1 | (MIT OR CC0-1.0) | transitive |
 | `typescript` | 5.9.3 | Apache-2.0 | yes |
+| `uint8-varint` | 3.0.0 | Apache-2.0 OR MIT | transitive |
+| `uint8arraylist` | 3.0.2 | Apache-2.0 OR MIT | transitive |
+| `uint8arrays` | 6.1.1 | Apache-2.0 OR MIT | transitive |
 | `undici-types` | 6.19.8 | MIT | transitive |
 | `undici` | 5.29.0 | MIT | transitive |
 | `universalify` | 0.1.2 | MIT | transitive |
+| `unlimited-timeout` | 0.1.0 | MIT | transitive |
 | `unpipe` | 1.0.0 | MIT | transitive |
 | `update-browserslist-db` | 1.3.4 | MIT | transitive |
+| `utf8-codec` | 1.0.0 | MIT | transitive |
 | `util-deprecate` | 1.0.2 | MIT | transitive |
 | `uuid` | 8.3.2 | MIT | transitive |
 | `uuid` | 9.0.1 | MIT | transitive |
 | `vite` | 7.3.7 | MIT | yes |
+| `weald` | 1.1.3 | Apache-2.0 OR MIT | transitive |
+| `wherearewe` | 2.0.1 | Apache-2.0 OR MIT | transitive |
 | `which` | 2.0.2 | ISC | transitive |
 | `widest-line` | 3.1.0 | MIT | transitive |
 | `workerpool` | 9.3.4 | Apache-2.0 | transitive |

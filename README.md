@@ -2,7 +2,7 @@
 
 Open-source reference MVP for fixed-price AI jobs with partitioned output commitments, post-commit sample verification, signed evidence, and idempotent settlement.
 
-> **Status: local development MVP; not a production decentralized network.** The local demo executes the full protocol on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. Golem, libp2p, Helia/IPFS, OrbitDB, drand verification, and EAS are not wired into the runtime yet. No real funds or proprietary token are used.
+> **Status: local development MVP; not a production decentralized network.** The local customer workflow executes on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. The libp2p peer transport package is implemented and tested with TCP/Noise loopback plus an in-process test mesh, but it is not yet wired into the customer/miner task runtime. Golem, Helia/IPFS, OrbitDB, verified drand randomness, and EAS remain unintegrated. No real funds or proprietary token are used.
 
 ## What is implemented
 
@@ -71,6 +71,13 @@ workspace explicitly permits install scripts only for `esbuild` (which checks
 its platform binary hash) and `keccak` (which has a JavaScript fallback); these
 are required by the web build and local EVM test dependencies.
 
+To exercise P3 peer messaging locally, run `pnpm test:networking` for the
+multi-peer, TCP/Noise loopback, replay, and reconnect tests. The
+`pnpm demo:networking` command starts three in-process peers and shows signed
+public-event convergence using libp2p's test-only memory transport. See
+[`packages/networking/README.md`](packages/networking/README.md) before using
+the adapter outside a local test.
+
 To run the local inference demo, install Ollama separately and pull a model
 supported by the selected skill:
 
@@ -134,7 +141,7 @@ amn-validator audit <task-id>
 amn fraud-report --units 100 --corrupt 5 --samples 5 10 20 30 50
 ```
 
-`capabilities` writes a signed, stable local identity advertisement under `.amn/capabilities`. It does not join or announce to a P2P network. `amn-validator audit` verifies the signed execution commitment, receipt signature and validator identity binding, evidence hash, and each receipt's Merkle inclusion proof.
+`capabilities` writes a signed, stable local identity advertisement under `.amn/capabilities`. It does not join or announce to the P2P network package. `amn-validator audit` verifies the signed execution commitment, receipt signature and validator identity binding, evidence hash, and each receipt's Merkle inclusion proof.
 
 Optional MCP v2 tool server (`stdio`, local Ollama by default; Python 3.11+):
 
@@ -192,7 +199,7 @@ Outputs are in [`docs/reports`](docs/reports/): fixture protocol timings, proof/
 | OpenZeppelin Contracts / EVM | Local escrow contract and Hardhat tests; not connected to Python settlement |
 | Golem Yagna | Not connected; support constraints and adapter requirements documented |
 | Helia/IPFS + OrbitDB | Not connected; local public registry adapter is SQLite |
-| libp2p | Not connected; local API is loopback-only |
+| libp2p | Standalone peer-transport package with TCP/Noise, signed public gossip, encrypted direct RPC, and local event sync; not yet wired into the workflow runtime |
 | drand | Not connected; challenge adapter is simulated and says `verified: false` |
 | EAS | Not connected; receipt files use local EIP-712 signatures |
 

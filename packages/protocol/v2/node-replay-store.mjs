@@ -1,5 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
-import { link, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 function storageKey(value) {
@@ -13,10 +13,8 @@ export class FileReplayStore {
 
   async #claim(key, expiresAt, now) {
     const file = path.join(this.directory, `${storageKey(key)}.json`);
-    const temporary = `${file}.${randomUUID()}.tmp`;
-    await writeFile(temporary, JSON.stringify({ expiresAt }), { flag: "wx", mode: 0o600 });
     try {
-      await link(temporary, file);
+      await writeFile(file, JSON.stringify({ expiresAt }), { flag: "wx", mode: 0o600 });
       return true;
     } catch (error) {
       if (error.code !== "EEXIST") throw error;
@@ -35,12 +33,6 @@ export class FileReplayStore {
         return this.#claim(key, expiresAt, now);
       }
       return false;
-    } finally {
-      try {
-        await unlink(temporary);
-      } catch (error) {
-        if (error.code !== "ENOENT") throw error;
-      }
     }
   }
 

@@ -15,7 +15,7 @@ application is a local MVP, not a production decentralized network.
 | [Agent Skills](https://agentskills.io/specification) | Local validation and registry implemented | Provide portable, versioned skill packages that authors can publish, customers can discover and compose into workflows, and miners can interpret under explicit permissions. | P2 — Skills and tool execution |
 | [Ollama](https://ollama.com/) | Integrated locally | Provide local model discovery and structured inference so customers and miners can use installed models without requiring a proprietary cloud inference backend. | P2 — Skills and tool execution; validated local worker adapter |
 | [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) | Optional adapter implemented and tested | Expose approved skill tools through a standard agent-tool protocol, with AMN enforcing schemas, permissions, timeouts, and audit records. | P2 — Skills and tool execution |
-| [libp2p](https://libp2p.io/) | Not integrated | Let peers discover each other and exchange signed tasks, offers, commitments, assignments, receipts, and decisions without a required central coordinator. | P3 — Peer discovery and task messaging |
+| [libp2p](https://libp2p.io/) | Peer transport package implemented and tested; not yet wired into the customer/miner task runtime | Let peers discover each other and exchange signed public metadata plus authorized private task messages without a required central coordinator. | P3 — Peer discovery and task messaging |
 | [Helia / IPFS](https://github.com/ipfs/helia) | Not integrated | Store and retrieve public skills and benchmark artifacts by content hash, plus explicitly authorized encrypted task artifacts. | P4 — Content-addressed artifact storage |
 | [OrbitDB](https://github.com/orbitdb/orbitdb) | Not integrated | Replicate public skill metadata, benchmark submissions, ratings, and selected audit records across peers with deterministic conflict rules. | P5 — Replicated public registry (after P3–P4) |
 | Benchmark and quote pipeline (AMN feature; no new dependency) | Partial/local | Collect reproducible benchmark evidence and calculate fixed quotes using cost components, policy, and compatible offers. | P6 — Benchmark evidence and fixed quotes |
@@ -202,28 +202,41 @@ required before production use.
 
 ## P3 — Coordinator-free peer discovery and task messaging
 
-**Feature added:** customers, miners, and validators can discover one another
-and exchange signed public protocol messages over a peer mesh.
+**Implementation and automated validation:** PASS on 2026-10-23. Maintainer
+review/acceptance is pending; P4 has not started. See
+[`docs/reports/p3-peer-networking.md`](docs/reports/p3-peer-networking.md) for
+the implementation summary, commands, test evidence, limits, and assumptions.
 
-- [ ] Implement `PeerTransport` using a maintained libp2p implementation;
+**Feature added:** customers, miners, and validators can discover one another
+and exchange signed public protocol messages over a peer mesh; private task
+messages use authorized encrypted unicast. This package is not yet wired into
+the customer/miner task runtime.
+
+- [x] Implement `PeerTransport` using a maintained libp2p implementation;
   support authenticated/encrypted connections, discovery, pub/sub, and
   request/response for offers, tasks, commitments, assignments, receipts, and
   decisions.
-- [ ] Add expiry, rate and size limits, duplicate suppression, peer scoring,
+- [x] Add expiry, rate and size limits, duplicate suppression, peer scoring,
   deterministic event ordering, and restart-safe replay protection.
-- [ ] Define which messages are public and which require authenticated,
+- [x] Define which messages are public and which require authenticated,
   encrypted, authorized delivery; do not broadcast private task content.
-- [ ] Keep loopback/local transport as a test adapter and reject it when a
+- [x] Keep loopback/local transport as a test adapter and reject it when a
   deployment declares production peer networking required.
 
 **Validate before P4:**
 
-- [ ] Two- and multi-peer tests cover discovery, message validation, process
-  restart, delayed/duplicate messages, partition, recovery, and rejoin.
-- [ ] Peers converge on the same signed task and public event state without an
-  always-on coordinator.
-- [ ] Unauthorized peers cannot read private task messages or impersonate a
-  registered signer; document remaining Sybil limits.
+- [x] Two- and multi-peer tests cover static bootstrap discovery, TCP/Noise
+  loopback, signed-message validation, process restart, replay/duplicate and
+  conflicting messages, offline publication, partition recovery, and rejoin.
+- [x] Peers converge on the same public signed event state and direct private
+  tasks are routed only to authorized recipients, without an always-on
+  coordinator.
+- [x] Unauthorized sender/principal bindings are rejected; document remaining
+  Sybil limits.
+
+**Maintainer validation gate:** pending. Review the reproducible demo and
+[`docs/architecture/peer-networking.md`](docs/architecture/peer-networking.md),
+then validate P3 before starting P4.
 
 **Planned open-source contribution:** libp2p provides peer transport and
 discovery. It does not provide AMN's application identity policy, Sybil

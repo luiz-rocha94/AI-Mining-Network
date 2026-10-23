@@ -28,16 +28,20 @@
 | Settlement replay/double pay | Python SQLite idempotency key; EVM task replay state, decision hash, exact integer amounts | Python settlement is not a distributed consensus system; Solidity contract is not connected to the demo. |
 | Audit-log rewriting | Per-task event hash chain detects internal edits when head hash is retained | SQLite owner can rewrite the entire chain; no external checkpoint/attestation in the MVP. |
 | Quote manipulation | Customer max checked and all amounts fixed as integer atomic values | Local offers are synthetic model-derived offers, not marketplace prices. |
+| Peer impersonation or plaintext interception | libp2p Noise authenticates the transport PeerId and encrypts the peer connection; GossipSub strict-signing authenticates public libp2p messages; AMN separately checks EIP-712 signer binding and peer-to-principal policy for private RPC | Peer keys do not prove personhood or independence. Identity resolvers/authorization are supplied by the application; no Sybil policy, DHT, relay, or NAT traversal is implemented. Noise cannot protect compromised endpoints or authorized recipients. |
+| Missed, duplicate, or conflicting peer events | Signed public records are persisted locally, deduplicated by ID/body, and reconciled in bounded deterministic pages on peer connection | GossipSub is best effort and P3 has no global consensus log. Anti-entropy is eventual and currently runs on connection or explicit `syncPublicEvents`, not a continuous global repair service. |
+| Private task broadcast | `CustomerTask` and unknown/private kinds are direct RPC only and are excluded from GossipSub and the public event store | The adapter does not provide artifact transfer or application-level recipient grants. Do not place private file content in public records; encrypted private artifact storage is a later integration. |
 
 ## Cryptographic guarantees (narrow)
 
 - SHA-256 content digests detect changes to the specific bytes/JSON that were hashed.
 - EIP-712 + ECDSA recovery verifies that the matching private key signed the typed payload under the configured domain.
+- libp2p Noise authenticates the remote transport PeerId and encrypts bytes in transit on that connection; GossipSub strict-signing binds a public pubsub message to a PeerId key.
 - Merkle inclusion verifies a supplied tuple's membership in a root under the specified leaf/node encoding.
 - EVM storage, checked arithmetic, `SafeERC20`, reentrancy protection, quorum signatures, terminal task state, and decision hash prevent the tested replay/double-payout path for the deployed contract code.
 - The local event hash chain identifies changed records when compared with a trusted retained chain head.
 
-None of those primitives proves an AI model executed, an output is semantically correct, two keys belong to independent entities, a validator is honest, a benchmark is true, or an unselected output is correct.
+None of those primitives proves an AI model executed, an output is semantically correct, two keys belong to independent entities, a validator is honest, a benchmark is true, or an unselected output is correct. Noise transport authentication does not establish an AMN role unless the application's peer-to-principal and authorization policies are correct.
 
 ## Economic and probabilistic assumptions
 
@@ -51,4 +55,4 @@ Synthetic ground truth and PDFs remain local and are omitted from artifact listi
 
 ## Production blockers
 
-Before production: hardened per-job OS isolation (filesystem and outbound-network enforcement, kernel/VM CPU/RAM/GPU limits, and Ollama/model-process accounting), secure secret storage, encrypted authenticated artifact transport, verified drand client, independently governed validator eligibility/Sybil policy, distributed challenge/event convergence, appeal/dispute resolution, an audited settlement/assignment contract, benchmark replication and poisoning defense, privacy retention controls, and independent red-team/security review are mandatory work. See [production readiness](../production-readiness.md).
+Before production: hardened per-job OS isolation (filesystem and outbound-network enforcement, kernel/VM CPU/RAM/GPU limits, and Ollama/model-process accounting), secure secret storage, encrypted authenticated artifact transport, verified drand client, independently governed validator eligibility/Sybil policy, application/runtime integration for peer task messages, durable recovery beyond the current peer-connect anti-entropy, appeal/dispute resolution, an audited settlement/assignment contract, benchmark replication and poisoning defense, privacy retention controls, and independent red-team/security review are mandatory work. See [production readiness](../production-readiness.md).
