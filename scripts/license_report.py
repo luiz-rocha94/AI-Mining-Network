@@ -25,6 +25,8 @@ PYTHON_DIRECT = [
     "mcp",
 ]
 NODE_DIRECT = [
+    "@ipld/dag-cbor",
+    "@orbitdb/core",
     "@helia/bitswap",
     "@helia/libp2p",
     "@helia/unixfs",

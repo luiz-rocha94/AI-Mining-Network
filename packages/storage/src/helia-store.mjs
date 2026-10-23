@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { bootstrap } from "@libp2p/bootstrap";
+import { gossipsub } from "@libp2p/gossipsub";
 import { identify } from "@libp2p/identify";
 import { kadDHT } from "@libp2p/kad-dht";
 import { noise } from "@libp2p/noise";
@@ -13,6 +14,7 @@ import { FsBlockstore } from "blockstore-fs";
 import { MemoryDatastore } from "datastore-core";
 import { LevelDatastore } from "datastore-level";
 import { createHeliaLight } from "helia";
+import * as dagCbor from "@ipld/dag-cbor";
 import { unixfs } from "@helia/unixfs";
 import { withBitswap } from "@helia/bitswap";
 import { withLibp2pLight } from "@helia/libp2p";
@@ -44,6 +46,7 @@ export class HeliaArtifactStore {
     routingTimeoutMs = DEFAULT_ROUTING_TIMEOUT_MS,
     publicAuthorization = async () => false,
     privateGrantPolicy = async () => false,
+    libp2pNode,
   }) {
     if (!storageDir) throw new TypeError("storageDir is required");
     if (!Number.isSafeInteger(maxArtifactBytes) || maxArtifactBytes <= 0) {
@@ -60,6 +63,7 @@ export class HeliaArtifactStore {
       routingTimeoutMs,
       publicAuthorization,
       privateGrantPolicy,
+      libp2pNode,
     };
   }
 
@@ -72,30 +76,40 @@ export class HeliaArtifactStore {
     await Promise.all([mkdir(blocksDir, { recursive: true }), mkdir(datastoreDir, { recursive: true })]);
     const blockstore = new StartableFsBlockstore(blocksDir);
     const datastore = new StartableLevelDatastore(datastoreDir);
-    const helia = createHeliaLight({
+    let helia = createHeliaLight({
       blockstore,
       datastore,
+      // OrbitDB manifests/log entries use DAG-CBOR blocks.
+      codecs: [dagCbor],
     });
-    const peerDiscovery = bootstrapPeers.length > 0
-      ? [bootstrap({ list: [...bootstrapPeers] })]
-      : [];
-    this.#helia = withBitswap(withLibp2pLight(helia, {
-      addresses: { listen: [...listenAddresses] },
-      transports: [tcp()],
-      connectionEncrypters: [noise()],
-      streamMuxers: [yamux()],
-      peerDiscovery,
-      services: {
-        identify: identify(),
-        ping: ping(),
-        ...(bootstrapPeers.length > 0
-          ? { dht: kadDHT({ clientMode: false, protocol: "/ipfs/kad/1.0.0" }) }
-          : {}),
-      },
-      // Peer cache and DHT routing are reconstructible. Keeping their writes
-      // separate avoids closing a shared persistent datastore during libp2p shutdown.
-      datastore: new MemoryDatastore(),
-    }));
+    if (this.#options.libp2pNode) {
+      helia = attachExternalLibp2p(helia, this.#options.libp2pNode);
+    } else {
+      const peerDiscovery = bootstrapPeers.length > 0
+        ? [bootstrap({ list: [...bootstrapPeers] })]
+        : [];
+      helia = withLibp2pLight(helia, {
+        addresses: { listen: [...listenAddresses] },
+        transports: [tcp()],
+        connectionEncrypters: [noise()],
+        streamMuxers: [yamux()],
+        peerDiscovery,
+        services: {
+          identify: identify(),
+          ping: ping(),
+          // OrbitDB synchronization uses Helia's libp2p node and requires pubsub.
+          // A public OrbitDB database applies its own signed-record validation.
+          pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
+          ...(bootstrapPeers.length > 0
+            ? { dht: kadDHT({ clientMode: false, protocol: "/ipfs/kad/1.0.0" }) }
+            : {}),
+        },
+        // Peer cache and DHT routing are reconstructible. Keeping their writes
+        // separate avoids closing a shared persistent datastore during libp2p shutdown.
+        datastore: new MemoryDatastore(),
+      });
+    }
+    this.#helia = withBitswap(helia);
     try {
       // Helia checks its datastore version before invoking its start lifecycle.
       // Open persistent stores first; their start bridges are idempotent when Helia starts them again.
@@ -116,6 +130,16 @@ export class HeliaArtifactStore {
   get peerId() {
     this.#assertOpen();
     return this.#helia.libp2p.peerId.toString();
+  }
+
+  /**
+   * Return the live Helia instance for protocol adapters such as OrbitDB.
+   * Callers may use its documented Helia APIs but must not stop it; this store
+   * retains lifecycle ownership. A fresh instance is returned after each open.
+   */
+  getHeliaInstance() {
+    this.#assertOpen();
+    return this.#helia;
   }
 
   get multiaddrs() {
@@ -441,6 +465,26 @@ function createConnectedPeerRouter(helia) {
       }
     },
   };
+}
+
+function attachExternalLibp2p(helia, node) {
+  if (typeof node?.start !== "function" || typeof node?.stop !== "function"
+    || typeof node?.getConnections !== "function" || !node.services?.pubsub) {
+    throw new TypeError("libp2pNode must be a started-capable libp2p instance with a pubsub service");
+  }
+  Object.defineProperty(helia, "libp2p", {
+    configurable: true,
+    enumerable: true,
+    get: () => node,
+  });
+  // The peer transport owns this node's lifecycle. Helia only borrows it for
+  // Bitswap, direct-peer routing and OrbitDB's pubsub synchronization.
+  helia.addMixin({
+    name: "amn-external-libp2p",
+    start: async () => { await node.start(); },
+    stop: async () => {},
+  });
+  return helia;
 }
 
 class StartableFsBlockstore extends FsBlockstore {

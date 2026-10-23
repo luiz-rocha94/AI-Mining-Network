@@ -6,7 +6,7 @@ The MVP is **not production-ready**. Check each item with code, independent test
 
 - [ ] Deploy a libp2p peer mesh with authenticated transports, discovery, peer scoring, replay protection, signed message relays, and recovery after network partitions.
 - [ ] Wire the tested P4 Helia storage adapter into skill publication, task artifacts, and peer discovery; configure and validate public bootstrap/DHT or another decentralized provider index, multi-operator availability, backup, and rejoin.
-- [ ] Replace SQLite public skill/event indexes with OrbitDB on the P3/P4 peer/storage layers; exercise concurrent publication, deterministic conflict/revocation rules, persistence, and partition/rejoin.
+- [ ] Wire the tested P5 OrbitDB public metadata adapter into authoring, benchmark, and rating flows instead of the remaining SQLite indexes; add multi-operator discovery, spam resistance, key-history resolution, and operational recovery beyond the local two-peer tests.
 - [ ] Define identity issuance, key rotation/revocation, hardware-backed or external signers, capability authenticity, and a documented Sybil-resistance policy.
 - [ ] Ensure skill authors can publish to the public registry without a central administrator while metadata conflicts converge deterministically.
 

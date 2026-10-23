@@ -67,7 +67,7 @@ Generated from Python distribution metadata and installed pnpm package manifests
 
 ## Node dependencies
 
-Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(BSD-3-Clause OR GPL-2.0)` 1, `(MIT OR Apache-2.0)` 1, `(MIT OR CC0-1.0)` 3, `(WTFPL OR MIT)` 1, `0BSD` 5, `Apache-2.0` 12, `Apache-2.0 OR MIT` 123, `BSD-2-Clause` 4, `BSD-3-Clause` 18, `BlueOak-1.0.0` 5, `CC-BY-4.0` 1, `ISC` 32, `MIT` 497, `MPL 2.0` 2, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 4, `WTFPL` 1, `WTFPL OR ISC` 1.
+Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(BSD-3-Clause OR GPL-2.0)` 1, `(MIT OR Apache-2.0)` 1, `(MIT OR CC0-1.0)` 3, `(WTFPL OR MIT)` 1, `0BSD` 5, `Apache-2.0` 13, `Apache-2.0 OR MIT` 124, `BSD-2-Clause` 4, `BSD-3-Clause` 18, `BlueOak-1.0.0` 5, `CC-BY-4.0` 1, `ISC` 32, `MIT` 503, `MPL 2.0` 2, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 5, `WTFPL` 1, `WTFPL OR ISC` 1.
 
 | Package | Version | License metadata | Direct dependency |
 |---|---:|---|---|
@@ -77,6 +77,7 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@adraffy/ens-normalize` | 1.11.1 | MIT | transitive |
 | `@ai-mining-network/networking` | 0.1.0 | UNKNOWN — review required | transitive |
 | `@ai-mining-network/protocol` | 2.0.0 | UNKNOWN — review required | transitive |
+| `@ai-mining-network/registry` | 0.1.0 | UNKNOWN — review required | transitive |
 | `@ai-mining-network/storage` | 0.1.0 | UNKNOWN — review required | transitive |
 | `@assemblyscript/loader` | 0.9.4 | Apache-2.0 | transitive |
 | `@babel/code-frame` | 7.29.7 | MIT | transitive |
@@ -140,7 +141,8 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@helia/trustless-gateway-client` | 1.0.7 | Apache-2.0 OR MIT | transitive |
 | `@helia/unixfs` | 8.0.9 | Apache-2.0 OR MIT | yes |
 | `@helia/utils` | 3.0.6 | Apache-2.0 OR MIT | transitive |
-| `@ipld/dag-cbor` | 10.0.2 | Apache-2.0 OR MIT | transitive |
+| `@ipld/dag-cbor` | 10.0.2 | Apache-2.0 OR MIT | yes |
+| `@ipld/dag-cbor` | 9.2.7 | Apache-2.0 OR MIT | yes |
 | `@ipld/dag-json` | 11.0.1 | Apache-2.0 OR MIT | transitive |
 | `@ipld/dag-pb` | 4.2.0 | Apache-2.0 OR MIT | transitive |
 | `@ipshipyard/crypto` | 1.1.0 | Apache-2.0 OR MIT | transitive |
@@ -235,6 +237,7 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@nomicfoundation/solidity-analyzer` | 0.1.2 | MIT | transitive |
 | `@openzeppelin/contracts` | 5.6.1 | MIT | yes |
 | `@openzeppelin/merkle-tree` | 1.0.8 | MIT | yes |
+| `@orbitdb/core` | 4.0.0 | MIT | yes |
 | `@peculiar/asn1-asym-key` | 2.11.0 | MIT | transitive |
 | `@peculiar/asn1-cms` | 2.11.0 | MIT | transitive |
 | `@peculiar/asn1-csr` | 2.11.0 | MIT | transitive |
@@ -355,6 +358,7 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `call-bind-apply-helpers` | 1.0.2 | MIT | transitive |
 | `camelcase` | 6.3.0 | MIT | transitive |
 | `caniuse-lite` | 1.0.30001818 | CC-BY-4.0 | transitive |
+| `cborg` | 5.1.11 | Apache-2.0 | transitive |
 | `cborg` | 6.1.4 | Apache-2.0 | transitive |
 | `chalk` | 4.1.2 | MIT | transitive |
 | `chokidar` | 4.0.3 | MIT | transitive |
@@ -563,6 +567,7 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `loose-envify` | 1.4.0 | MIT | transitive |
 | `lru-cache` | 10.4.3 | ISC | transitive |
 | `lru-cache` | 5.1.1 | ISC | transitive |
+| `lru` | 3.1.0 | MIT | transitive |
 | `lru_map` | 0.3.3 | MIT | transitive |
 | `main-event` | 1.0.5 | Apache-2.0 OR MIT | transitive |
 | `math-intrinsics` | 1.1.0 | MIT | transitive |
@@ -638,8 +643,10 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `p-limit` | 3.1.0 | MIT | transitive |
 | `p-locate` | 5.0.0 | MIT | transitive |
 | `p-map` | 4.0.0 | MIT | transitive |
+| `p-queue` | 8.1.1 | MIT | transitive |
 | `p-queue` | 9.3.5 | MIT | transitive |
 | `p-retry` | 8.0.1 | MIT | transitive |
+| `p-timeout` | 6.1.4 | MIT | transitive |
 | `p-timeout` | 7.0.2 | MIT | transitive |
 | `p-wait-for` | 6.0.0 | MIT | transitive |
 | `package-json-from-dist` | 1.0.1 | BlueOak-1.0.0 | transitive |
@@ -687,6 +694,7 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `require-from-string` | 2.0.2 | MIT | transitive |
 | `resolve` | 1.17.0 | MIT | transitive |
 | `retimeable-signal` | 1.0.1 | Apache-2.0 OR MIT | transitive |
+| `retimer` | 3.0.0 | MIT | transitive |
 | `reusify` | 1.1.0 | MIT | transitive |
 | `rollup` | 4.64.12 | MIT | transitive |
 | `run-parallel` | 1.2.0 | MIT | transitive |
@@ -733,6 +741,7 @@ Resolved packages: **718**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `throat` | 5.0.0 | MIT | transitive |
 | `thunky` | 1.1.0 | MIT | transitive |
 | `time-span` | 5.1.0 | MIT | transitive |
+| `timeout-abort-controller` | 3.0.0 | MIT | transitive |
 | `tinyglobby` | 0.2.17 | MIT | transitive |
 | `tmp` | 0.0.33 | MIT | transitive |
 | `to-regex-range` | 5.0.1 | MIT | transitive |

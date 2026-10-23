@@ -2,7 +2,7 @@
 
 Open-source reference MVP for fixed-price AI jobs with partitioned output commitments, post-commit sample verification, signed evidence, and idempotent settlement.
 
-> **Status: local development MVP; not a production decentralized network.** The local customer workflow executes on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. The libp2p peer transport package and Helia/IPFS artifact-storage adapter are implemented and tested locally, but neither is wired into the customer/miner task runtime. Helia has no configured public DHT/bootstrap network here. Golem, OrbitDB, verified drand randomness, and EAS remain unintegrated. No real funds or proprietary token are used.
+> **Status: local development MVP; not a production decentralized network.** The local customer workflow executes on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. P3 libp2p, P4 Helia/IPFS, and the P5 OrbitDB public registry now have tested local adapters, including an OrbitDB peer sharing the P3 libp2p node with P4 Helia; these adapters are not wired into the customer/miner task runtime. Helia has no configured public DHT/bootstrap network here. Golem, verified drand randomness, and EAS remain unintegrated. No real funds or proprietary token are used.
 
 ## What is implemented
 
@@ -12,6 +12,7 @@ Open-source reference MVP for fixed-price AI jobs with partitioned output commit
 - A signed 20-sample invoice benchmark receipt for the invoice skill/model digest. General document-task quotes use a disclosed local text-size/model-size estimate; they do not claim an executed skill benchmark.
 - Fixed integer-atomic quotes selected from compatible local offer records. The accepted quote is the maximum charge.
 - A workflow builder with a fixed Input node for prompt/files/model, a node library and skill-text inspector, connectable skill nodes, and a fixed Final output node. Drag supported files onto Input, add skills from the library, connect each skill from Input or an earlier node, and review the fixed summed quote before execution.
+- A separate OrbitDB v4 append-only public skill registry. Signed skill manifests, benchmark claims, ratings, author revocations, and policy-authorized audit checkpoints replicate over the P3 libp2p node embedded in P4 Helia. Public task records are rejected by the adapter.
 - Private per-document input units, schema-constrained Ollama results, JSON and formula-safe XLSX artifacts, Merkle commitment, independent sample replay, signed receipts, and local settlement. The invoice extraction skill remains available as one selectable skill; `document-assistant` supports general document prompts.
 - Per-invoice execution units and a Python Merkle tree whose root matches OpenZeppelin `StandardMerkleTree` for a cross-language golden vector.
 - Random sample and validator selection after commitment. Local randomness is explicitly marked **unverified**; assignments and receipts are EIP-712 signed.
@@ -51,7 +52,7 @@ See [architecture](docs/architecture/architecture.md), [protocol](docs/protocol.
 ## Requirements
 
 - Python 3.10+ (Python 3.12 recommended), Git.
-- Node.js 20+ and pnpm 11 for the UI, protocol compatibility test, and Hardhat contracts.
+- Node.js 20+ and pnpm 11 for the UI, protocol compatibility test, and Hardhat contracts. Node.js 22+ is required for the OrbitDB v4 registry.
 - Ollama running with at least one installed model for the customer UI's general document workflow. The UI lists every model exposed by the configured Ollama `/api/tags` endpoint and does not silently switch models or providers.
 - No Docker, cloud account, blockchain RPC, wallet funds, or production infrastructure is needed for tests.
 
@@ -79,6 +80,17 @@ multi-peer, TCP/Noise loopback, replay, and reconnect tests. The
 public-event convergence using libp2p's test-only memory transport. See
 [`packages/networking/README.md`](packages/networking/README.md) before using
 the adapter outside a local test.
+
+To exercise P5's public metadata registry, run `pnpm test:registry` and
+`pnpm demo:registry`. The demo shares one P3 libp2p transport between each P4
+Helia peer and OrbitDB, then shows a signed skill record replicating to a second
+peer. The test also covers concurrent writes, conflict ordering, revocation,
+policy rejection, a full node restart, offline partition writes, and rejoin.
+OrbitDB uses a public wildcard-write database; AMN validates signed records in
+its adapter, which does not prevent an untrusted peer from bypassing the adapter
+and consuming replication resources. See
+[`docs/architecture/orbitdb-registry.md`](docs/architecture/orbitdb-registry.md)
+for the API, trust assumptions, and production limits.
 
 To exercise P4 content-addressed storage, run `pnpm test:storage` and
 `pnpm demo:storage`. The demo connects two independent local Helia peers over

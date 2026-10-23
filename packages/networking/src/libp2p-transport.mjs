@@ -100,9 +100,16 @@ export class Libp2pPeerTransport extends EventEmitter {
     const transports = options.testOnlyModules?.transports ?? [tcp()];
     const discoveryModules = options.testOnlyModules?.peerDiscovery ?? (options.discovery === false ? [] : [mdns()]);
     const listenAddresses = options.listenAddresses ?? ["/ip4/0.0.0.0/tcp/0"];
+    if (options.allowOrbitDbTopics !== undefined && typeof options.allowOrbitDbTopics !== "boolean") {
+      throw new PeerTransportError("INVALID_CONFIGURATION", "allowOrbitDbTopics must be a boolean");
+    }
     const pubsubService = gossipsub({
       globalSignaturePolicy: "StrictSign",
-      allowedTopics: [PUBLIC_TOPIC],
+      // OrbitDB's append-only database topics are derived from its manifest
+      // address and therefore cannot be enumerated before database creation.
+      // Opt-in removes the topic allowlist only for peers that embed OrbitDB;
+      // AMN's application handler still processes only PUBLIC_TOPIC.
+      ...(options.allowOrbitDbTopics === true ? {} : { allowedTopics: [PUBLIC_TOPIC] }),
       allowPublishToZeroTopicPeers: true,
       maxInboundDataLength: maxMessageBytes,
       maxInboundStreams: 8,

@@ -49,7 +49,7 @@ flowchart LR
   Private[Encrypted private task artifacts] -. authorized peers only .-> Transport[Authenticated encrypted transport]
 ```
 
-This target is a design, not an end-to-end deployment. P3 provides a separately tested libp2p peer transport; P4 provides a separately tested Helia artifact store for public content and encrypted private bytes. Neither adapter is yet wired into the customer/miner task path. Helia local pins do not guarantee global persistence. OrbitDB is not integrated; its eventual consistency will require deterministic conflict rules for public metadata and will not make private data confidential.
+This target is not an end-to-end deployment. P3 provides a libp2p peer transport and P4 provides a Helia artifact store for public content and encrypted private bytes. P5 adds an OrbitDB public metadata adapter that can share the P3 transport node embedded in P4 Helia. These adapters remain separate from the customer/miner task path; the live UI still uses SQLite. Helia local pins do not guarantee global persistence. OrbitDB replicates signed public claims eventually and does not make private data confidential or decide which conflicting claim is truthful. See [the P5 registry design](orbitdb-registry.md).
 
 ## Local modules and seams
 
@@ -68,6 +68,7 @@ This target is a design, not an end-to-end deployment. P3 provides a separately 
 - `TaskEscrow.sol`: OpenZeppelin SafeERC20/ReentrancyGuard/EIP712/ECDSA escrow primitive. It does not verify drand proofs or validator selection.
 - `packages/networking`: standalone libp2p TCP/Noise peer transport, signed public event sync, and encrypted authorized direct RPC; it has not been wired into API/miner/validator orchestration.
 - `packages/storage`: standalone persistent Helia/UnixFS/Bitswap artifact adapter. Public writes are explicit and kind-limited; private artifacts use authenticated encryption and recipient key envelopes. See [artifact storage](artifact-storage.md); the customer task flow does not yet call this package.
+- `packages/registry`: OrbitDB v4 append-only public metadata adapter. It validates signed protocol v2 envelopes against identity and record policies, derives search views from the immutable event log, and can share P3 libp2p through P4 Helia. It is not the customer UI's active registry.
 
 The local APIs are deliberately narrow and the network/compute/storage/payment adapters are replaceable. A production adapter must pass the exact same protocol and adversarial test suite before replacing a local implementation.
 

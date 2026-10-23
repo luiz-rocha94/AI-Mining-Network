@@ -93,6 +93,24 @@ importers:
         specifier: ^6.14.0
         version: 6.17.0
 
+  packages/registry:
+    dependencies:
+      '@ai-mining-network/networking':
+        specifier: workspace:*
+        version: link:../networking
+      '@ai-mining-network/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+      '@ai-mining-network/storage':
+        specifier: workspace:*
+        version: link:../storage
+      '@orbitdb/core':
+        specifier: ^4.0.0
+        version: 4.0.0
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
+
   packages/storage:
     dependencies:
       '@helia/bitswap':
@@ -104,9 +122,15 @@ importers:
       '@helia/unixfs':
         specifier: ^8.0.9
         version: 8.0.9(supports-color@10.2.2)
+      '@ipld/dag-cbor':
+        specifier: ^10.0.1
+        version: 10.0.2
       '@libp2p/bootstrap':
         specifier: ^12.0.24
         version: 12.0.36
+      '@libp2p/gossipsub':
+        specifier: ^17.2.1
+        version: 17.2.1
       '@libp2p/identify':
         specifier: ^4.1.18
         version: 4.1.18
@@ -536,6 +560,9 @@ packages:
   '@ipld/dag-cbor@10.0.2':
     resolution: {integrity: sha512-1eCD4YMTlkx5i36oQUmeAojLS/wu+XCd1Gs31BA0afk0TaVkhnyMofIAT/pi0wV3HS3/G7QSN/1NibhiksMyZQ==}
 
+  '@ipld/dag-cbor@9.2.7':
+    resolution: {integrity: sha512-ZmfXmElRWATr+hoUTSAOr6HUcjVhOcNHDqgczc76qte2DHHFEK0ZhNzUcdTDQhF/VSIvf2ioaRTRLWwLc83sNw==}
+
   '@ipld/dag-json@11.0.1':
     resolution: {integrity: sha512-cMDD0yWkUruqhbLDwAWaV5q92hYKQDP2xP0n+yZp0oxsC68Pw+xFZNc9rj0v2n5m5m/Aa1A+Qlb2tY3NjQMsWg==}
 
@@ -924,6 +951,10 @@ packages:
 
   '@openzeppelin/merkle-tree@1.0.8':
     resolution: {integrity: sha512-E2c9/Y3vjZXwVvPZKqCKUn7upnvam1P1ZhowJyZVQSkzZm5WhumtaRr+wkUXrZVfkIc7Gfrl7xzabElqDL09ow==}
+
+  '@orbitdb/core@4.0.0':
+    resolution: {integrity: sha512-JPnoVzNYxJ8XxjXVzkuVOK/eLzz5xGzRHhPJaUdDhWwBDqvQkpks7bxL4qiA+HswN7EgyC6u20WIt62fRU9wDg==}
+    engines: {node: '>=22.0.0'}
 
   '@peculiar/asn1-asym-key@2.11.0':
     resolution: {integrity: sha512-r2957WdSZle/Zt4t9og7OMQYXNJ9/3ANXVtFwLCDJuHORlBZ4AFmDt1Qee0CzyTbHQg4ZZApBGEz5/6cFsyCRg==}
@@ -1496,6 +1527,10 @@ packages:
 
   caniuse-lite@1.0.30001818:
     resolution: {integrity: sha512-XJbgo4adscw7R4MZU4/qVFkoMyPaNUAWmdNY4o/k9x7fFwmv4frIlndI9lWuaxviW9ObiZel9LuncnQPn6hQ5A==}
+
+  cborg@5.1.11:
+    resolution: {integrity: sha512-oc6Pzg/gkTobxHZNgMmny+G99dOeBMbAmnGHcZWMKtolxZBIVwfi0Pj0khxEtNU8HMFdbT5sK0HmtgecDUPP0A==}
+    hasBin: true
 
   cborg@6.1.4:
     resolution: {integrity: sha512-JqjDDfTuED2qUvy570NGQUXqfzC34H++AHJIZnLAmiAdHNqHJKbtzox5yViRz5rc0gM9OPSX7n7Sh+BNU263Xw==}
@@ -2281,6 +2316,10 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  lru@3.1.0:
+    resolution: {integrity: sha512-5OUtoiVIGU4VXBOshidmtOsvBIvcQR6FD/RzWSvaeHyxCGB+PCUCu+52lqMfdc0h/2CLvHhZS4TwUmMQrrMbBQ==}
+    engines: {node: '>= 0.4.0'}
+
   lru_map@0.3.3:
     resolution: {integrity: sha512-Pn9cox5CsMYngeDbmChANltQl+5pi6XmTrraMSzhPmMBbmgcxmqWry0U3PGapCU1yB4/LqCcom7qhHZiF/jGfQ==}
 
@@ -2562,6 +2601,10 @@ packages:
     resolution: {integrity: sha512-/bjOqmgETBYB5BoEeGVea8dmvHb2m9GLy1E9W43yeyfP6QQCZGFNa+XRceJEuDB6zqr+gKpIAmlLebMpykw/MQ==}
     engines: {node: '>=10'}
 
+  p-queue@8.1.1:
+    resolution: {integrity: sha512-aNZ+VfjobsWryoiPnEApGGmf5WmNsCo9xu8dfaYamG5qaLP7ClhLN6NgsFe6SwJ2UbLEBK5dv9x8Mn5+RVhMWQ==}
+    engines: {node: '>=18'}
+
   p-queue@9.3.5:
     resolution: {integrity: sha512-Lki/zhXFVmDhesBUn/yHRLW9Bte7mE7xoFHzTR8sIomV7a2z+LxYAPkGvdfidNiu4fKSfjtawixxSHcZci5QcQ==}
     engines: {node: '>=20'}
@@ -2569,6 +2612,10 @@ packages:
   p-retry@8.0.1:
     resolution: {integrity: sha512-NAigyu8hfvJe7MsS18mnc4is0MZtau3QMdBklaJKK23oBQb6occO3UPM3vHmTckW8KhfyjMZaUOqdTFEYliHgg==}
     engines: {node: '>=22'}
+
+  p-timeout@6.1.4:
+    resolution: {integrity: sha512-MyIV3ZA/PmyBN/ud8vV9XzwTrNtR4jFrObymZYnZqMmW0zA8Z17vnT0rBgFE/TlohB+YCHqXMgZzb3Csp49vqg==}
+    engines: {node: '>=14.16'}
 
   p-timeout@7.0.2:
     resolution: {integrity: sha512-prbX4Z3YszrFNgH+MW5Zoeq3baXrMtP/MQnFeET90UB/GtGcGDQ5Usg9OCy6ETjTTntOw1SL2z9fMPUppN3Guw==}
@@ -2749,6 +2796,9 @@ packages:
   retimeable-signal@1.0.1:
     resolution: {integrity: sha512-Cy26CYfbWnYu8HMoJeDhaMpW/EYFIbne3vMf6G9RSrOyWYXbPehja/BEdzpqmM84uy2bfBD7NPZhoQ4GZEtgvg==}
 
+  retimer@3.0.0:
+    resolution: {integrity: sha512-WKE0j11Pa0ZJI5YIk0nflGI7SQsfl2ljihVy7ogh7DeQSeYAUi0ubZ/yEueGtDfUPk6GH5LRw1hBdLq4IwUBWA==}
+
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
@@ -2924,6 +2974,9 @@ packages:
   time-span@5.1.0:
     resolution: {integrity: sha512-75voc/9G4rDIJleOo4jPvN4/YC4GRZrY8yy1uU4lwrB3XEQbWve8zXoO5No4eFrGcTAMYyoY67p8jRQdtA1HbA==}
     engines: {node: '>=12'}
+
+  timeout-abort-controller@3.0.0:
+    resolution: {integrity: sha512-O3e+2B8BKrQxU2YRyEjC/2yFdb33slI22WRdUaDx6rvysfi9anloNZyR2q0l6LnePo5qH7gSM7uZtvvwZbc2yA==}
 
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
@@ -3808,6 +3861,11 @@ snapshots:
       cborg: 6.1.4
       multiformats: 14.0.5
 
+  '@ipld/dag-cbor@9.2.7':
+    dependencies:
+      cborg: 5.1.11
+      multiformats: 13.4.2
+
   '@ipld/dag-json@11.0.1':
     dependencies:
       cborg: 6.1.4
@@ -4596,6 +4654,19 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@orbitdb/core@4.0.0':
+    dependencies:
+      '@ipld/dag-cbor': 9.2.7
+      '@libp2p/crypto': 5.2.0
+      any-signal: 4.2.0
+      it-pipe: 3.0.1
+      level: 10.0.0
+      lru: 3.1.0
+      multiformats: 13.4.2
+      p-queue: 8.1.1
+      timeout-abort-controller: 3.0.0
+      uint8arrays: 5.1.1
+
   '@peculiar/asn1-asym-key@2.11.0':
     dependencies:
       '@peculiar/asn1-pkcs8': 2.11.0
@@ -5264,6 +5335,8 @@ snapshots:
   camelcase@6.3.0: {}
 
   caniuse-lite@1.0.30001818: {}
+
+  cborg@5.1.11: {}
 
   cborg@6.1.4: {}
 
@@ -6231,6 +6304,10 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  lru@3.1.0:
+    dependencies:
+      inherits: 2.0.4
+
   lru_map@0.3.3: {}
 
   main-event@1.0.5: {}
@@ -6603,6 +6680,11 @@ snapshots:
     dependencies:
       aggregate-error: 3.1.0
 
+  p-queue@8.1.1:
+    dependencies:
+      eventemitter3: 5.0.4
+      p-timeout: 6.1.4
+
   p-queue@9.3.5:
     dependencies:
       eventemitter3: 5.0.4
@@ -6611,6 +6693,8 @@ snapshots:
   p-retry@8.0.1:
     dependencies:
       is-network-error: 1.3.2
+
+  p-timeout@6.1.4: {}
 
   p-timeout@7.0.2: {}
 
@@ -6812,6 +6896,8 @@ snapshots:
       path-parse: 1.0.7
 
   retimeable-signal@1.0.1: {}
+
+  retimer@3.0.0: {}
 
   reusify@1.1.0: {}
 
@@ -7019,6 +7105,10 @@ snapshots:
   time-span@5.1.0:
     dependencies:
       convert-hrtime: 5.0.0
+
+  timeout-abort-controller@3.0.0:
+    dependencies:
+      retimer: 3.0.0
 
   tinyglobby@0.2.17:
     dependencies:

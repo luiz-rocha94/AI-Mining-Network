@@ -294,24 +294,24 @@ persistence, authorization, or deletion from every replica.
 **Feature added:** public skill and benchmark metadata becomes discoverable and
 eventually consistent across independently operated peers.
 
-- [ ] Implement OrbitDB `PublicMetadataStore` on the P3 libp2p and P4 Helia
+- [x] Implement OrbitDB `PublicMetadataStore` on the P3 libp2p node embedded in P4 Helia
   adapters; replicate signed immutable skill versions, benchmark submissions,
   ratings, revocations, and authorized audit checkpoints.
-- [ ] Specify deterministic conflict, duplicate, revocation, and tombstone
+- [x] Specify deterministic conflict, duplicate, revocation, and tombstone
   handling. Derive search indexes from replicated records; do not treat one
   writable index as authoritative state.
-- [ ] Keep private task state and private artifacts outside public OrbitDB
+- [x] Keep private task state and private artifacts outside public OrbitDB
   databases. Include encrypted references only when customer-authorized.
 
 **Validate before P6:**
 
-- [ ] Two independent OrbitDB peers converge after concurrent publication,
+- [x] Two independent OrbitDB peers converge after concurrent publication,
   partition, restart, and rejoin; forged and unauthorized records are rejected.
-- [ ] Duplicate, revocation, and concurrent-version conflicts produce the
+- [x] Duplicate, revocation, and concurrent-version conflicts produce the
   same deterministic result on every peer.
-- [ ] Privacy tests find no private prompt, source document, ground truth, or
+- [x] Privacy tests find no private prompt, source document, ground truth, or
   plaintext result in public records.
-- [ ] Document eventual consistency and the fact that OrbitDB does not decide
+- [x] Document eventual consistency and the fact that OrbitDB does not decide
   which conflicting signed claim is truthful.
 
 **Planned open-source contribution:** OrbitDB supplies eventually consistent

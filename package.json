@@ -11,10 +11,12 @@
     "test:protocol": "node --test packages/protocol/tests/*.test.mjs && pnpm typecheck:protocol",
     "test:networking": "node --test packages/networking/tests/*.test.mjs",
     "test:storage": "node --test packages/storage/tests/*.test.mjs",
+    "test:registry": "node --test packages/registry/tests/*.test.mjs",
     "test:contract": "hardhat test --config contracts/hardhat.config.cjs",
-    "test:all": "pnpm test:web && pnpm test:protocol && pnpm test:networking && pnpm test:storage && pnpm test:contract && python -m pytest",
+    "test:all": "pnpm test:web && pnpm test:protocol && pnpm test:networking && pnpm test:storage && pnpm test:registry && pnpm test:contract && python -m pytest",
     "demo:networking": "node packages/networking/demo.mjs",
     "demo:storage": "node packages/storage/demo.mjs",
+    "demo:registry": "node packages/registry/demo.mjs",
     "demo": "python -m ai_mining_network.cli demo"
   },
   "devDependencies": {

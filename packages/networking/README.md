@@ -8,6 +8,14 @@ multiaddresses for networks where LAN mDNS is unavailable. An initial peer
 address or an enabled discovery mechanism is still needed to join a remote
 network; this package does not require a central task coordinator.
 
+Peers that share this node with OrbitDB may opt into
+`allowOrbitDbTopics: true`. OrbitDB topic IDs are derived after its manifest is
+created, so the node cannot enumerate those topics up front. This disables the
+GossipSub topic allowlist for that peer; strict pubsub signatures and the AMN
+application handler's own topic filter remain active. Use the option only when
+embedding the node in a public OrbitDB registry, and apply the registry's AMN
+record validation separately.
+
 ## Run the local peer demo
 
 From the repository root:

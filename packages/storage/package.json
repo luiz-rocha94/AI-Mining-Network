@@ -14,6 +14,8 @@
     "demo": "node demo.mjs"
   },
   "dependencies": {
+    "@ipld/dag-cbor": "^10.0.1",
+    "@libp2p/gossipsub": "^17.2.1",
     "@helia/bitswap": "^4.0.20",
     "@helia/libp2p": "^2.1.5",
     "@helia/unixfs": "^8.0.9",

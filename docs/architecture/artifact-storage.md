@@ -1,9 +1,10 @@
 # Artifact storage (P4)
 
 The storage package provides an explicit Helia/IPFS adapter for public skill,
-benchmark, and receipt artifacts plus encrypted private task artifacts. It is a
-replaceable adapter; the customer/miner workflow and skill registry still use
-their existing local stores and are not wired to Helia yet.
+benchmark, and receipt artifacts plus encrypted private task artifacts. The
+customer/miner workflow and local Python skill registry still use their local
+stores. The P5 OrbitDB public metadata adapter uses this Helia node for
+replicated public registry events.
 
 ## Local implementation
 
@@ -13,6 +14,11 @@ their existing local stores and are not wired to Helia yet.
 - TCP connections use libp2p Noise and Yamux. Bitswap transfers content blocks;
   Helia recomputes CID identity, and AMN checks the caller's signed expected CID
   and SHA-256 before returning bytes.
+- The store can borrow a P3 libp2p node via `libp2pNode` so Helia/Bitswap and
+  OrbitDB share the same peer connections. The P3 node owns its lifecycle and
+  must be closed after the Helia store. OrbitDB peers opt into dynamically
+  derived pubsub topics; the restrictive P3 topic allowlist stays enabled by
+  default for other peers.
 - A connected-peer content router makes already connected peers available for
   local retrieval. A DHT service is enabled only when bootstrap addresses are
   configured. There is no HTTP gateway or centralized retrieval fallback.
@@ -53,8 +59,9 @@ pnpm demo:storage
 The demo starts two local TCP peers, publishes and fetches an explicitly public
 skill artifact, then transfers an encrypted private artifact to its assigned
 validator, which decrypts it. It uses no DHT bootstrap, gateway, cloud pinning
-service, or real funds. A separate networking adapter exists in P3; the
-application workflow does not yet publish through either peer package.
+service, or real funds. The P5 OrbitDB registry uses a separate multi-peer
+demo. Neither the P3/P4/P5 adapters nor the customer task workflow use this P4
+storage demo automatically.
 
 ## Guarantees and limits
 

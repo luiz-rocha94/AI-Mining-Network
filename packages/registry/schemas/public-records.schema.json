@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-mining-network.example/registry/v1/public-records.schema.json",
+  "title": "AI Mining Network public registry payload extensions",
+  "$defs": {
+    "SkillRevocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "SkillRevocation" },
+        "revocationId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "contentHash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "reason": { "type": "string", "maxLength": 256 }
+      },
+      "required": ["kind", "revocationId", "contentHash"]
+    },
+    "PublicAuditCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "PublicAuditCheckpoint" },
+        "checkpointId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "recordsRoot": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "recordCount": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "coveredRecordIds": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        }
+      },
+      "required": ["kind", "checkpointId", "recordsRoot", "recordCount", "coveredRecordIds"]
+    }
+  }
+}
