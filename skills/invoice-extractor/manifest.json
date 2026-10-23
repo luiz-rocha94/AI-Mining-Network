@@ -6,8 +6,8 @@
   "inputSchema": {
     "type": "object",
     "properties": {
-      "invoiceId": { "type": "string" },
-      "documentText": { "type": "string" }
+      "invoiceId": { "type": "string", "description": "Stable identifier for the invoice document being processed." },
+      "documentText": { "type": "string", "description": "Text extracted from the invoice PDF or source document." }
     },
     "required": ["invoiceId", "documentText"],
     "additionalProperties": false
@@ -15,11 +15,11 @@
   "outputSchema": {
     "type": "object",
     "properties": {
-      "invoiceId": { "type": "string" },
-      "supplier": { "type": "string" },
-      "invoiceDate": { "type": "string", "format": "date" },
-      "totalAmount": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]{1,2})?$" },
-      "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+      "invoiceId": { "type": "string", "description": "Identifier carried through from the input document." },
+      "supplier": { "type": "string", "description": "Name of the supplier that issued the invoice." },
+      "invoiceDate": { "type": "string", "format": "date", "description": "Invoice issue date in ISO 8601 YYYY-MM-DD format." },
+      "totalAmount": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]{1,2})?$", "description": "Invoice total as a decimal string with up to two fractional digits." },
+      "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "Three-letter ISO 4217 currency code." }
     },
     "required": ["invoiceId", "supplier", "invoiceDate", "totalAmount", "currency"],
     "additionalProperties": false

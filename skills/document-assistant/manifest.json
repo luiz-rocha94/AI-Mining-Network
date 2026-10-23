@@ -6,16 +6,16 @@
   "inputSchema": {
     "type": "object",
     "properties": {
-      "customerPrompt": { "type": "string" },
-      "documentName": { "type": "string" },
-      "documentText": { "type": "string" }
+      "customerPrompt": { "type": "string", "description": "The customer's instruction describing the requested document task." },
+      "documentName": { "type": "string", "description": "Name of the document being processed." },
+      "documentText": { "type": "string", "description": "Text extracted from the document and provided to the skill." }
     },
     "required": ["customerPrompt", "documentName", "documentText"],
     "additionalProperties": false
   },
   "outputSchema": {
     "type": "object",
-    "properties": { "response": { "type": "string" } },
+    "properties": { "response": { "type": "string", "description": "The skill's response to the customer's request." } },
     "required": ["response"],
     "additionalProperties": false
   },

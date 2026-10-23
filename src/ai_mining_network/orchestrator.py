@@ -10,12 +10,14 @@ import hashlib
 import json
 import math
 import re
+import sqlite3
 import shutil
 import threading
 import time
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from eth_account import Account
 
@@ -225,7 +227,58 @@ def _workflow_output_schema(profiles: list[dict], workflow: dict) -> dict:
     }
 
 
-def _run_skill_workflow(runner: OllamaDocumentRunner, profiles: list[dict], workflow: dict, prompt: str, document):
+def _runtime_value_preview(value, *, depth: int = 0):
+    """Bound live inspector values; previews are never written to the job record on disk."""
+    if isinstance(value, str):
+        limit = 1800
+        return value if len(value) <= limit else {
+            "preview": value[:limit] + "…",
+            "truncated": True,
+            "totalCharacters": len(value),
+        }
+    if isinstance(value, dict):
+        if depth >= 4:
+            return {"preview": "Object preview depth limit reached", "truncated": True}
+        items = list(value.items())
+        preview = {str(key): _runtime_value_preview(item, depth=depth + 1) for key, item in items[:24]}
+        if len(items) > 24:
+            preview["_previewNote"] = f"{len(items) - 24} additional fields omitted"
+        return preview
+    if isinstance(value, (list, tuple)):
+        if depth >= 4:
+            return [{"preview": "Array preview depth limit reached", "truncated": True}]
+        preview = [_runtime_value_preview(item, depth=depth + 1) for item in value[:8]]
+        if len(value) > 8:
+            preview.append({"_previewNote": f"{len(value) - 8} additional items omitted"})
+        return preview
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    text = str(value)
+    return text if len(text) <= 300 else text[:300] + "…"
+
+
+def _mark_pending_nodes_failed(record: dict) -> None:
+    execution = record.get("nodeExecution")
+    if not isinstance(execution, dict):
+        return
+    execution["currentNodeId"] = None
+    for node in execution.get("nodes", []):
+        if node.get("status") in {"QUEUED", "RUNNING", "IN_PROGRESS"}:
+            node["status"] = "FAILED"
+            node["currentUnit"] = None
+
+
+def _run_skill_workflow(
+    runner: OllamaDocumentRunner,
+    profiles: list[dict],
+    workflow: dict,
+    prompt: str,
+    document,
+    *,
+    on_node_update=None,
+    unit_index: int = 1,
+    unit_count: int = 1,
+):
     """Run connected skill nodes in order; terminal values form the final Output node."""
     profile_by_node = {profile["nodeId"]: profile for profile in profiles}
     input_by_node: dict[str, list[str]] = {node["id"]: [] for node in workflow["nodes"]}
@@ -241,14 +294,30 @@ def _run_skill_workflow(runner: OllamaDocumentRunner, profiles: list[dict], work
             {"upstreamNode": source_id, "output": source_value}, ensure_ascii=False, sort_keys=True,
         )
         profile = profile_by_node[node["id"]]
-        values[node["id"]] = runner.run(
-            skill_name=profile["name"],
-            skill_instructions=profile["instructions"],
-            prompt=prompt,
-            document_name=document.file_name,
-            document_text=source_text,
-            output_schema=profile["outputSchema"],
-        )
+        node_input = {
+            "prompt": prompt,
+            "documentName": document.file_name,
+            "sourceNode": source_id,
+            "sourceValue": source_value,
+        }
+        if on_node_update:
+            on_node_update(node["id"], profile["name"], "RUNNING", unit_index, unit_count, node_input, None)
+        try:
+            values[node["id"]] = runner.run(
+                skill_name=profile["name"],
+                skill_instructions=profile["instructions"],
+                prompt=prompt,
+                document_name=document.file_name,
+                document_text=source_text,
+                output_schema=profile["outputSchema"],
+            )
+        except Exception:
+            if on_node_update:
+                on_node_update(node["id"], profile["name"], "FAILED", unit_index, unit_count, node_input, None)
+            raise
+        if on_node_update:
+            status = "COMPLETED" if unit_index >= unit_count else "IN_PROGRESS"
+            on_node_update(node["id"], profile["name"], status, unit_index, unit_count, node_input, values[node["id"]])
     terminal_ids = input_by_node["output"]
     if len(terminal_ids) == 1:
         return values[terminal_ids[0]]
@@ -276,6 +345,23 @@ class DemoService:
         self.extractor_factory = extractor_factory or (lambda: OllamaExtractor(self.model, self.ollama_url))
         self.event_log = EventLog(self.state_dir / "state.sqlite3")
         self.registry = LocalSkillRegistry(self.state_dir / "registry.sqlite3")
+        self.workflow_db = self.state_dir / "workflows.sqlite3"
+        with closing(sqlite3.connect(self.workflow_db)) as connection:
+            connection.execute(
+                """CREATE TABLE IF NOT EXISTS workflows (
+                    workflow_id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    workflow_json TEXT NOT NULL,
+                    skill_refs_json TEXT NOT NULL DEFAULT '[]',
+                    content_hash TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )"""
+            )
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(workflows)")}
+            if "skill_refs_json" not in columns:
+                connection.execute("ALTER TABLE workflows ADD COLUMN skill_refs_json TEXT NOT NULL DEFAULT '[]'")
+            connection.commit()
         self._jobs: dict[str, dict] = {}
         self._workers: dict[str, threading.Thread] = {}
         self._lock = threading.RLock()
@@ -354,6 +440,71 @@ class DemoService:
                 "manifest": manifest,
             }
         raise DemoError(f"skill not found: {name}")
+
+    def list_workflows(self) -> list[dict]:
+        """List locally saved workflow templates; task prompts and files are never stored here."""
+        with closing(sqlite3.connect(self.workflow_db)) as connection:
+            rows = connection.execute(
+                "SELECT workflow_id, name, workflow_json, skill_refs_json, content_hash, created_at, updated_at "
+                "FROM workflows ORDER BY updated_at DESC"
+            ).fetchall()
+        return [self._workflow_response(row) for row in rows]
+
+    def get_workflow(self, workflow_id: str) -> dict:
+        with closing(sqlite3.connect(self.workflow_db)) as connection:
+            row = connection.execute(
+                "SELECT workflow_id, name, workflow_json, skill_refs_json, content_hash, created_at, updated_at "
+                "FROM workflows WHERE workflow_id = ?", (workflow_id,)
+            ).fetchone()
+        if row is None:
+            raise DemoError(f"workflow not found: {workflow_id}")
+        return self._workflow_response(row)
+
+    @staticmethod
+    def _workflow_response(row: tuple) -> dict:
+        return {
+            "workflowId": row[0], "name": row[1], "workflow": json.loads(row[2]),
+            "skills": json.loads(row[3]), "contentHash": row[4], "createdAt": row[5], "updatedAt": row[6],
+        }
+
+    def save_workflow(self, name: str, workflow: object, workflow_id: str | None = None) -> dict:
+        """Persist a public workflow template without retaining any task input or customer data."""
+        if not isinstance(name, str):
+            raise ValueError("workflow name must be text")
+        name = name.strip()
+        if not name or len(name) > 120 or any(ord(char) < 32 for char in name):
+            raise ValueError("workflow name must be 1–120 printable characters")
+        normalized = _normalize_workflow(workflow)
+        skills = []
+        for node in normalized["nodes"]:
+            if node["type"] == "skill":
+                details = self.skill_details(node["skillName"])
+                skills.append({"nodeId": node["id"], "name": details["name"], "version": details["version"], "contentHash": details["contentHash"]})
+        content_hash_value = _hash_json({"name": name, "workflow": normalized, "skills": skills})
+        now = datetime.now(timezone.utc).isoformat()
+        requested_workflow_id = workflow_id is not None
+        workflow_id = workflow_id or str(uuid4())
+        try:
+            if not isinstance(workflow_id, str):
+                raise ValueError
+            workflow_id = str(UUID(workflow_id))
+        except ValueError:
+            raise ValueError("workflowId must be a UUID")
+        with closing(sqlite3.connect(self.workflow_db)) as connection:
+            existing = connection.execute("SELECT created_at FROM workflows WHERE workflow_id = ?", (workflow_id,)).fetchone()
+            if requested_workflow_id and existing is None:
+                raise DemoError(f"workflow not found: {workflow_id}")
+            created_at = existing[0] if existing else now
+            connection.execute(
+                "INSERT INTO workflows (workflow_id, name, workflow_json, skill_refs_json, content_hash, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(workflow_id) DO UPDATE SET "
+                "name=excluded.name, workflow_json=excluded.workflow_json, skill_refs_json=excluded.skill_refs_json, "
+                "content_hash=excluded.content_hash, updated_at=excluded.updated_at",
+                (workflow_id, name, json.dumps(normalized, ensure_ascii=False, separators=(",", ":")),
+                 json.dumps(skills, ensure_ascii=False, separators=(",", ":")), content_hash_value, created_at, now),
+            )
+            connection.commit()
+        return self.get_workflow(workflow_id)
 
     def create_document_quote(
         self,
@@ -575,6 +726,31 @@ class DemoService:
             "executionTimeout": False,
             "state": "CREATED",
             "progress": "Calculated a fixed local estimate; waiting for customer acceptance.",
+            # Live input/output previews are served to this customer's UI only and
+            # deliberately excluded from persisted quote.json below.
+            "nodeExecution": {
+                "currentNodeId": None,
+                "totalUnits": len(documents),
+                "inputValues": _runtime_value_preview({
+                    "prompt": prompt.strip(),
+                    "model": model,
+                    "files": [item.file_name for item in documents],
+                }),
+                "outputValues": None,
+                "nodes": [
+                    {
+                        "nodeId": profile["nodeId"],
+                        "skillName": profile["name"],
+                        "status": "QUEUED",
+                        "completedUnits": 0,
+                        "totalUnits": len(documents),
+                        "currentUnit": None,
+                        "inputValues": None,
+                        "outputValues": None,
+                    }
+                    for profile in skill_profiles
+                ],
+            },
         }
         _json_file(task_dir / "customer-task.json", task_message.model_dump(mode="json"))
         _json_file(task_dir / "miner-offers.json", signed_offers)
@@ -810,6 +986,8 @@ class DemoService:
         except Exception as exc:
             record["error"] = str(exc)
             record["progress"] = "Execution stopped with an error; refunding the fixed quote."
+            with self._lock:
+                _mark_pending_nodes_failed(record)
             current = record["state"]
             if current not in {"FAILED", "INCONCLUSIVE", "DISPUTED", "REFUNDED", "SETTLED"}:
                 try:
@@ -1045,6 +1223,8 @@ class DemoService:
         task_id = record["task"]["taskId"]
         task_dir = self.jobs_dir / task_id
         if record["executionTimeout"]:
+            with self._lock:
+                _mark_pending_nodes_failed(record)
             self._transition(record, "FAILED", "execution.timeout", {"deadlineExceeded": True})
             self._finalize_refund(record, reason="EXECUTION_TIMEOUT")
             return
@@ -1101,16 +1281,51 @@ class DemoService:
         scope = "the prompt-only request" if record.get("promptOnly") else f"{len(documents)} uploaded file(s)"
         record["progress"] = f"Running {len(current_profiles)} workflow skill node(s) on {scope} with {record['model']}."
         records = []
-        for document in documents:
+        def publish_node_update(node_id, skill_name, status, unit_index, unit_count, input_values, output_values):
+            with self._lock:
+                execution = record.get("nodeExecution")
+                if not isinstance(execution, dict):
+                    return
+                node_state = next((item for item in execution.get("nodes", []) if item.get("nodeId") == node_id), None)
+                if node_state is None:
+                    return
+                node_state["skillName"] = skill_name
+                node_state["status"] = status
+                node_state["currentUnit"] = unit_index if status == "RUNNING" else None
+                node_state["completedUnits"] = max(node_state.get("completedUnits", 0), unit_index if status in {"IN_PROGRESS", "COMPLETED"} else 0)
+                if input_values is not None:
+                    node_state["inputValues"] = _runtime_value_preview(input_values)
+                if output_values is not None:
+                    node_state["outputValues"] = _runtime_value_preview(output_values)
+                if status == "RUNNING":
+                    execution["currentNodeId"] = node_id
+                    record["progress"] = f"Running {skill_name} · document {unit_index}/{unit_count}."
+                elif execution.get("currentNodeId") == node_id:
+                    execution["currentNodeId"] = None
+
+        for unit_index, document in enumerate(documents, start=1):
             if time.time() > datetime.fromisoformat(record["contract"]["commitDeadline"]).timestamp():
+                with self._lock:
+                    _mark_pending_nodes_failed(record)
                 self._transition(record, "FAILED", "execution.timeout", {"deadlineExceeded": True})
                 self._finalize_refund(record, reason="EXECUTION_TIMEOUT")
                 return
             result = (
-                _run_skill_workflow(runner, current_profiles, current_workflow, record["prompt"], document)
+                _run_skill_workflow(
+                    runner, current_profiles, current_workflow, record["prompt"], document,
+                    on_node_update=publish_node_update, unit_index=unit_index, unit_count=len(documents),
+                )
                 if current_workflow else _run_skill_chain(runner, current_profiles, record["prompt"], document)
             )
             records.append({"unitId": document.unit_id, "fileName": document.file_name, "result": result})
+            with self._lock:
+                execution = record.get("nodeExecution")
+                if isinstance(execution, dict):
+                    execution["outputValues"] = _runtime_value_preview({
+                        "completedUnits": len(records),
+                        "totalUnits": len(documents),
+                        "latestUnit": {"unitId": document.unit_id, "fileName": document.file_name, "value": result},
+                    })
         _json_file(task_dir / "results.json", records)
         write_result_workbook(records, task_dir / "results.xlsx")
         artifact_paths = [task_dir / "results.json", task_dir / "results.xlsx"]
@@ -1341,6 +1556,9 @@ class DemoService:
         safe_record.pop("customerPrivateKey", None)
         safe_record.pop("executorPrivateKey", None)
         safe_record.pop("validatorPrivateKeys", None)
+        # These previews can contain customer prompts and uploaded document text.
+        # Keep them transient for the local inspector; never write them into quote.json.
+        safe_record.pop("nodeExecution", None)
         _json_file(self.jobs_dir / task_id / "quote.json", safe_record)
 
     @staticmethod
@@ -1426,5 +1644,6 @@ class DemoService:
             "validatorCount": quote["validatorCount"],
             "sampleCount": quote["sampleCount"],
             "ratingPaymentIndependent": True,
+            "nodeExecution": record.get("nodeExecution"),
         }
 

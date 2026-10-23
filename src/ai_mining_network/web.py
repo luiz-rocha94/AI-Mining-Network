@@ -109,6 +109,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             if parts == ["api", "skills"]:
                 self._json(200, self.service.list_skills())
                 return
+            if parts == ["api", "workflows"]:
+                self._json(200, self.service.list_workflows())
+                return
+            if len(parts) == 3 and parts[:2] == ["api", "workflows"]:
+                self._json(200, self.service.get_workflow(parts[2]))
+                return
             if len(parts) == 3 and parts[:2] == ["api", "skills"]:
                 self._json(200, self.service.skill_details(parts[2]))
                 return
@@ -187,6 +193,20 @@ class ApiHandler(BaseHTTPRequestHandler):
                     execution_timeout=bool(data.get("executionTimeout", False)),
                 )
                 self._json(201, job)
+                return
+            if parts == ["api", "workflows"]:
+                data = self._body()
+                workflow = data.get("workflow")
+                if not isinstance(workflow, dict):
+                    raise ValueError("workflow must be a JSON workflow object")
+                name = data.get("name")
+                if not isinstance(name, str):
+                    raise ValueError("workflow name must be text")
+                workflow_id = data.get("workflowId")
+                if workflow_id is not None and not isinstance(workflow_id, str):
+                    raise ValueError("workflowId must be a UUID string")
+                saved = self.service.save_workflow(name, workflow, workflow_id)
+                self._json(201 if workflow_id is None else 200, saved)
                 return
             if len(parts) == 4 and parts[:2] == ["api", "tasks"] and parts[3] == "accept":
                 self._json(202, self.service.accept_quote(parts[2]))
