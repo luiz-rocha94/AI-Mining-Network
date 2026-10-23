@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import math
 import re
+import statistics
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+# Protocol v2 represents atomics as JSON integers consumed by JS as well as
+# Python. The safe-integer ceiling avoids silent rounding in cross-language
+# quote approval; a future protocol can move larger amounts to decimal strings.
+MAX_ATOMIC = 2**53 - 1
+SHA256_PATTERN = r"^sha256:[0-9a-f]{64}$"
 
 
 def utc_now() -> datetime:
@@ -49,26 +57,85 @@ class SkillManifest(WireModel):
     publicBenchmarkIds: list[str] = Field(default_factory=list)
 
 
+class BenchmarkMeasurementProvenance(WireModel):
+    """Self-reported environment and collector details; not hardware attestation."""
+
+    measurementMode: Literal[
+        "self-reported", "independent-observer", "trusted-hardware-attestation"
+    ] = "self-reported"
+    collectorVersion: str = Field(min_length=1, max_length=64)
+    measurementId: str = Field(min_length=1, max_length=128)
+    environmentHash: str = Field(pattern=SHA256_PATTERN)
+    limitations: list[str] = Field(default_factory=list, max_length=32)
+
+
 class SkillBenchmark(WireModel):
     kind: Literal["SkillBenchmark"] = "SkillBenchmark"
-    benchmarkVersion: str = "invoice-synthetic-v1"
-    skillHash: str
-    datasetHash: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    benchmarkVersion: str = "invoice-synthetic-v2"
+    skillHash: str = Field(pattern=SHA256_PATTERN)
+    datasetHash: str = Field(pattern=SHA256_PATTERN)
     runtime: str
+    runtimeDigest: str = Field(pattern=SHA256_PATTERN)
     modelDigest: str
     hardwareClass: str
-    sampleCount: int = Field(ge=1)
+    warmColdPolicy: Literal[
+        "warm-after-single-warmup", "cold-per-sample", "natural-cache-state"
+    ]
+    sampleCount: int = Field(ge=20)
+    durationSamplesMs: list[int] = Field(min_length=20, max_length=100_000)
+    durationVarianceMs2: int = Field(ge=0)
+    outputValidationResults: list[bool] = Field(min_length=20, max_length=100_000)
     inputTokens: int = Field(ge=0)
     outputTokens: int = Field(ge=0)
     p50DurationMs: int = Field(ge=0)
     p90DurationMs: int = Field(ge=0)
     cpuAverageMilliPct: int | None = Field(default=None, ge=0)
+    cpuSamplesMilliPct: list[int] | None = Field(default=None, min_length=20, max_length=100_000)
     peakRamBytes: int | None = Field(default=None, ge=0)
+    ramSamplesBytes: list[int] | None = Field(default=None, min_length=20, max_length=100_000)
     peakVramBytes: int | None = Field(default=None, ge=0)
     successRateBps: int = Field(ge=0, le=10_000)
     outputValidationPasses: int = Field(ge=0)
+    measurementProvenance: BenchmarkMeasurementProvenance
     selfReportedMetrics: bool = True
     receiptId: str
+
+    @model_validator(mode="after")
+    def validate_observations(self):
+        if self.sampleCount != len(self.durationSamplesMs):
+            raise ValueError("sampleCount must match durationSamplesMs")
+        if self.sampleCount != len(self.outputValidationResults):
+            raise ValueError("sampleCount must match outputValidationResults")
+        if any(duration < 0 for duration in self.durationSamplesMs):
+            raise ValueError("duration samples cannot be negative")
+        ordered = sorted(self.durationSamplesMs)
+        p50 = ordered[max(0, min(len(ordered) - 1, math.ceil(0.50 * len(ordered)) - 1))]
+        p90 = ordered[max(0, min(len(ordered) - 1, math.ceil(0.90 * len(ordered)) - 1))]
+        if self.p50DurationMs != p50 or self.p90DurationMs != p90:
+            raise ValueError("P50/P90 must be recomputed from the signed duration samples")
+        expected_variance = round(statistics.pvariance(self.durationSamplesMs))
+        if self.durationVarianceMs2 != expected_variance:
+            raise ValueError("durationVarianceMs2 does not match signed duration samples")
+        passes = sum(self.outputValidationResults)
+        if self.outputValidationPasses != passes:
+            raise ValueError("outputValidationPasses does not match signed validation results")
+        if self.successRateBps != round(10_000 * passes / self.sampleCount):
+            raise ValueError("successRateBps does not match signed validation results")
+        if self.selfReportedMetrics != (self.measurementProvenance.measurementMode == "self-reported"):
+            raise ValueError("selfReportedMetrics must agree with measurementProvenance")
+        if self.cpuSamplesMilliPct is not None:
+            if len(self.cpuSamplesMilliPct) != self.sampleCount:
+                raise ValueError("cpuSamplesMilliPct must match sampleCount")
+            if self.cpuAverageMilliPct != round(statistics.mean(self.cpuSamplesMilliPct)):
+                raise ValueError("cpuAverageMilliPct does not match signed CPU samples")
+        elif self.cpuAverageMilliPct is not None:
+            raise ValueError("cpuAverageMilliPct requires its per-sample observations")
+        if self.ramSamplesBytes is not None:
+            if len(self.ramSamplesBytes) != self.sampleCount:
+                raise ValueError("ramSamplesBytes must match sampleCount")
+            if self.peakRamBytes != max(self.ramSamplesBytes):
+                raise ValueError("peakRamBytes does not match signed RSS observations")
+        return self
 
 
 class MinerCapabilities(WireModel):
@@ -95,16 +162,32 @@ class ValidatorCapabilities(WireModel):
     available: bool = True
 
 
+class OfferCapabilities(WireModel):
+    """Capacity advertised by an offer; signed claims are not hardware attestation."""
+
+    available: bool = True
+    cpuCores: int = Field(default=0, ge=0)
+    ramBytes: int = Field(default=0, ge=0)
+    gpuModels: list[str] = Field(default_factory=list)
+    vramBytes: int = Field(default=0, ge=0)
+    modelDigests: list[str] = Field(default_factory=list)
+    runtimeDigests: list[str] = Field(default_factory=list)
+    verificationStrategies: list[str] = Field(default_factory=list)
+    supportsNetworkAccess: bool = False
+
+
 class MinerOffer(WireModel):
     kind: Literal["MinerOffer"] = "MinerOffer"
     offerId: str
     peerId: str
     skillHash: str
-    priceAtomic: int = Field(ge=0)
+    priceAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
     currency: Currency
     estimatedDurationMs: int = Field(ge=0)
     expiresAt: datetime
     requirements: ResourceRequirements = Field(default_factory=ResourceRequirements)
+    offerSource: Literal["local-fixture", "provider-offer"] = "local-fixture"
+    availableResources: OfferCapabilities | None = None
 
 
 class CustomerTask(WireModel):
@@ -120,7 +203,7 @@ class CustomerTask(WireModel):
     inputCount: int = Field(ge=1)
     partitioning: Literal["per-record", "per-document", "per-image", "deterministic-batch"]
     requestedOutput: str
-    maxPriceAtomic: int = Field(ge=0)
+    maxPriceAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
     currency: Currency
     deadline: datetime
     verificationSampleCount: int = Field(ge=1)
@@ -131,18 +214,42 @@ class FixedPriceQuote(WireModel):
     kind: Literal["FixedPriceQuote"] = "FixedPriceQuote"
     quoteId: str
     taskId: str
-    executionRewardAtomic: int = Field(ge=0)
-    verificationBudgetAtomic: int = Field(ge=0)
-    protocolFeeAtomic: int = Field(default=0, ge=0)
-    totalAtomic: int = Field(ge=0)
+    executionRewardAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
+    verificationBudgetAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
+    protocolFeeAtomic: int = Field(default=0, strict=True, ge=0, le=MAX_ATOMIC)
+    storageBudgetAtomic: int = Field(default=0, strict=True, ge=0, le=MAX_ATOMIC)
+    settlementBudgetAtomic: int = Field(default=0, strict=True, ge=0, le=MAX_ATOMIC)
+    totalAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
     currency: Currency
     expiresAt: datetime
     executorOfferId: str
     validatorOfferIds: list[str] = Field(min_length=1)
+    priceBasis: Literal["compatible-offers", "local-fixture"] = "local-fixture"
+    offerSnapshotHash: str = Field(pattern=SHA256_PATTERN)
+    assumptions: dict = Field(default_factory=dict)
     sampleCount: int = Field(ge=1)
     validatorCount: int = Field(ge=1)
     failureRules: dict
     verificationPolicy: dict
+
+    @model_validator(mode="after")
+    def validate_total(self):
+        components = (
+            self.executionRewardAtomic
+            + self.verificationBudgetAtomic
+            + self.protocolFeeAtomic
+            + self.storageBudgetAtomic
+            + self.settlementBudgetAtomic
+        )
+        if components > MAX_ATOMIC:
+            raise ValueError("quote components overflow uint256 atomic arithmetic")
+        if self.totalAtomic != components:
+            raise ValueError("totalAtomic must equal the sum of every quoted cost component")
+        if len(set(self.validatorOfferIds)) != len(self.validatorOfferIds):
+            raise ValueError("validator offer IDs must be distinct")
+        if self.validatorCount != len(self.validatorOfferIds):
+            raise ValueError("validatorCount must match validatorOfferIds")
+        return self
 
 
 class ExecutionContract(WireModel):
@@ -218,7 +325,7 @@ class VerificationDecision(WireModel):
 
 class Payout(WireModel):
     payee: str
-    amountAtomic: int = Field(ge=0)
+    amountAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
     purpose: Literal["execution", "verification", "protocol-fee", "refund"]
 
 
@@ -231,7 +338,7 @@ class PaymentSettlement(WireModel):
     outcome: Literal["SETTLED", "REFUNDED", "DISPUTED"]
     currency: Currency
     payouts: list[Payout]
-    totalChargedAtomic: int = Field(ge=0)
+    totalChargedAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
     decisionHash: str
 
 

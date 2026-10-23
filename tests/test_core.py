@@ -6,21 +6,46 @@ from pathlib import Path
 import pytest
 from eth_account import Account
 
-from ai_mining_network.benchmark import fraud_detection_probability, summarize_runs
+from ai_mining_network.benchmark import (
+    aggregate_benchmark_receipts,
+    fraud_detection_probability,
+    summarize_runs,
+)
 from ai_mining_network.benchmark_service import run_invoice_benchmark
 from ai_mining_network.canonical import canonical_json_bytes, content_hash
-from ai_mining_network.invoice import FixtureExtractor, generate_synthetic_invoices, normalize_record, write_workbook
+from ai_mining_network.invoice import (
+    FixtureExtractor,
+    generate_synthetic_invoices,
+    normalize_record,
+    write_workbook,
+)
 from ai_mining_network.merkle import build_tree
-from ai_mining_network.models import Currency, MinerOffer, ResourceRequirements, SignedMessage
+from ai_mining_network.models import (
+    Currency,
+    MinerOffer,
+    ResourceRequirements,
+    SignedMessage,
+)
 from ai_mining_network.orchestrator import DemoService
 from ai_mining_network.pricing import PricingError, fixed_quote
-from ai_mining_network.reputation import aggregate_miner_reliability, aggregate_skill_quality, aggregate_validator_reliability
-from ai_mining_network.registry import LocalSkillRegistry, compute_skill_hash, read_skill
+from ai_mining_network.registry import (
+    LocalSkillRegistry,
+    compute_skill_hash,
+    read_skill,
+)
+from ai_mining_network.reputation import (
+    aggregate_miner_reliability,
+    aggregate_skill_quality,
+    aggregate_validator_reliability,
+)
 from ai_mining_network.settlement import create_settlement, settle_once
 from ai_mining_network.signing import create_message, verify_message
-from ai_mining_network.state_machine import EventLog, InvalidTransition, validate_transition
-from ai_mining_network.verification import decide, verify_invoice_unit
-
+from ai_mining_network.state_machine import (
+    EventLog,
+    InvalidTransition,
+    validate_transition,
+)
+from ai_mining_network.verification import decide
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -196,16 +221,30 @@ def test_xlsx_text_fields_cannot_become_formulas(tmp_path):
 
 def test_benchmark_is_versioned_signed_and_uses_reproducible_semantic_dataset(tmp_path):
     skill = copy_skill(tmp_path)
-    first, report_a = run_invoice_benchmark(skill, tmp_path / "bench-a", FixtureExtractor(), sample_count=20)
-    second, report_b = run_invoice_benchmark(skill, tmp_path / "bench-b", FixtureExtractor(), sample_count=20)
-    assert first.benchmarkVersion == "invoice-synthetic-v1"
-    assert first.datasetHash == second.datasetHash == report_a["datasetHash"] == report_b["datasetHash"]
+    contributor_keys = [Account.create().key.hex() for _ in range(3)]
+    first, report_a = run_invoice_benchmark(skill, tmp_path / "bench-a", FixtureExtractor(), sample_count=20, private_key=contributor_keys[0])
+    second, report_b = run_invoice_benchmark(skill, tmp_path / "bench-b", FixtureExtractor(), sample_count=20, private_key=contributor_keys[1])
+    third, _ = run_invoice_benchmark(skill, tmp_path / "bench-c", FixtureExtractor(), sample_count=20, private_key=contributor_keys[2])
+    assert first.benchmarkVersion == "invoice-synthetic-v2"
+    assert first.datasetHash == second.datasetHash == third.datasetHash == report_a["datasetHash"] == report_b["datasetHash"]
     assert first.sampleCount == 20 and first.successRateBps == 10_000
-    assert first.cpuAverageMilliPct is None and first.peakVramBytes is None
+    assert first.warmColdPolicy == "warm-after-single-warmup"
+    assert len(first.durationSamplesMs) == len(first.outputValidationResults) == 20
+    assert first.durationVarianceMs2 >= 0
+    assert first.runtimeDigest.startswith("sha256:")
+    assert first.cpuAverageMilliPct is None or first.cpuAverageMilliPct >= 0
+    assert first.peakRamBytes is None or first.peakRamBytes > 0
+    assert first.peakVramBytes is None  # Ollama's separate process cannot be metered here.
     from ai_mining_network.models import SignedMessage
 
-    signed = SignedMessage.model_validate_json((tmp_path / "bench-a" / "benchmark-receipt.json").read_text())
-    assert verify_message(signed)
+    signed = [
+        SignedMessage.model_validate_json((tmp_path / f"bench-{name}" / "benchmark-receipt.json").read_text())
+        for name in ("a", "b", "c")
+    ]
+    assert all(verify_message(receipt) for receipt in signed)
+    aggregate = aggregate_benchmark_receipts(signed, expected_skill_hash=first.skillHash)
+    assert aggregate.sample_count == 60 and aggregate.contributor_count == 3
+    assert aggregate.p50_duration_ms == first.p50DurationMs
 
 
 def test_state_machine_and_settlement_idempotency(tmp_path):
@@ -320,7 +359,16 @@ def test_general_document_task_runs_commit_verify_and_settle(tmp_path, monkeypat
     assert signed_task.payload.outputSchemaHash == content_hash(service._jobs[job["task"]["taskId"]]["outputSchema"])
     assert signed_task.payload.modelName == "test:4b"
     assert signed_task.payload.modelDigest == "sha256:test-model-digest"
-    assert job["quote"]["totalAtomic"] == job["quote"]["executionRewardAtomic"] + job["quote"]["verificationBudgetAtomic"]
+    assert job["quote"]["totalAtomic"] == sum(
+        job["quote"][field]
+        for field in (
+            "executionRewardAtomic",
+            "verificationBudgetAtomic",
+            "protocolFeeAtomic",
+            "storageBudgetAtomic",
+            "settlementBudgetAtomic",
+        )
+    )
     assert job["quote"]["verificationPolicy"]["factualCorrectnessProven"] is False
     assert job["quote"]["verificationPolicy"]["disputeOnMismatch"] is False
     service.accept_quote(job["task"]["taskId"])
@@ -374,11 +422,23 @@ def test_multi_skill_document_task_sums_quote_and_binds_ordered_skill_line(tmp_p
     assert signed_task.payload.promptHash == content_hash(expected_prompt)
     assert job["task"]["skillNames"] == selected
     assert len(job["pricing"]["skills"]) == 2
-    for field in ("executionRewardAtomic", "verificationBudgetAtomic", "protocolFeeAtomic"):
+    for field in (
+        "executionRewardAtomic",
+        "verificationBudgetAtomic",
+        "protocolFeeAtomic",
+        "storageBudgetAtomic",
+        "settlementBudgetAtomic",
+    ):
         assert job["pricing"][field] == sum(item[field] for item in job["pricing"]["skills"])
     assert job["quote"]["totalAtomic"] == sum(
         job["pricing"][field]
-        for field in ("executionRewardAtomic", "verificationBudgetAtomic", "protocolFeeAtomic")
+        for field in (
+            "executionRewardAtomic",
+            "verificationBudgetAtomic",
+            "protocolFeeAtomic",
+            "storageBudgetAtomic",
+            "settlementBudgetAtomic",
+        )
     )
 
     service.accept_quote(job["task"]["taskId"])
@@ -453,6 +513,7 @@ def test_connected_workflow_binds_graph_and_executes_to_final_output(tmp_path, m
 
 def test_workflow_output_joins_connected_branch_leaves():
     from types import SimpleNamespace
+
     from ai_mining_network.orchestrator import _normalize_workflow, _run_skill_workflow
 
     workflow = _normalize_workflow({

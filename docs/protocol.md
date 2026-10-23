@@ -83,7 +83,7 @@ an independently governed identity directory are configured. The local
 identity files are development-only plaintext private keys protected by
 filesystem permissions where supported.
 
-The customer API accepts a multipart `/api/quote` request containing optional `files`, customer `prompt`, a versioned `workflow` JSON object, `model`, `sampleCount`, and `validatorCount`. The legacy `skills` array/single `skill` fields remain available for clients without graph support. A workflow has a fixed Input and Final output node, one to ten unique skill nodes, and directed edges. Each skill node has one upstream input from Input or an earlier skill node, so the graph is acyclic; Output joins all terminal skill nodes. For one terminal node, the committed result is that node's structured output. For multiple terminal nodes, the result is keyed by their skill names. The quote sums each skill node's local execution and verification estimate and returns node-level line items. Prompt-only requests are represented by one stable synthetic task-input unit; the prompt itself is separately signed into the task envelope. Local uploads are restricted to text-based PDF, TXT, Markdown, CSV, and JSON, with 100 files maximum, 10 MiB per file, 25 MiB aggregate upload, and a 2,000,000-character aggregate extraction bound. Private input bytes remain under `.amn/jobs/<task-id>/private-input/` and are filtered from the artifact endpoint. Remote Ollama requires an HTTPS `OLLAMA_HOST` and explicit `AMN_ALLOW_REMOTE_OLLAMA=1` authorization.
+The customer API accepts a multipart `/api/quote` request containing optional `files`, customer `prompt`, a versioned `workflow` JSON object, `model`, `sampleCount`, and `validatorCount`. The legacy `skills` array/single `skill` fields remain available for clients without graph support. A workflow has a fixed Input and Final output node, one to ten unique skill nodes, and directed edges. Each skill node has one upstream input from Input or an earlier skill node, so the graph is acyclic; Output joins all terminal skill nodes. For one terminal node, the committed result is that node's structured output. For multiple terminal nodes, the result is keyed by their skill names. P6 quotes include execution, verification, protocol, storage, and settlement lines, offer-source label, selected-offer snapshot, assumptions, expiry, and failure/refund rules. Current customer workflow offers remain `local-fixture` estimates, not live market prices. Prompt-only requests are represented by one stable synthetic task-input unit; the prompt itself is separately signed into the task envelope. Local uploads are restricted to text-based PDF, TXT, Markdown, CSV, and JSON, with 100 files maximum, 10 MiB per file, 25 MiB aggregate upload, and a 2,000,000-character aggregate extraction bound. Private input bytes remain under `.amn/jobs/<task-id>/private-input/` and are filtered from the artifact endpoint. Remote Ollama requires an HTTPS `OLLAMA_HOST` and explicit `AMN_ALLOW_REMOTE_OLLAMA=1` authorization.
 
 ## Challenge derivation and sampling
 
@@ -129,6 +129,31 @@ CREATED → QUOTED → FUNDED → ASSIGNED → EXECUTED → VERIFYING → VERIFI
 ```
 
 Quotes expire. Execution and verification failure rules are carried in the fixed quote. The quote maximum is immutable after acceptance; changing it requires a new quote and explicit customer acceptance. Every atomic amount is an integer.
+
+P6 `SkillBenchmark` receipts carry `runtimeDigest`, `warmColdPolicy`, raw
+`durationSamplesMs`, integer `durationVarianceMs2`, raw
+`outputValidationResults`, and `measurementProvenance` in addition to skill,
+model, runtime label, hardware class, sample count and summaries. P50 and P90
+use nearest-rank percentiles; variance is the population variance rounded to
+integer ms². The receipt validator recomputes these summaries from the signed
+observations. The current benchmark implementation emits at least 20 samples
+and labels every local observation as self-reported. A contributor signature
+authenticates a key and payload, not inference or hardware.
+
+`FixedPriceQuote` binds `offerSnapshotHash`, `priceBasis`, and `assumptions`,
+then separately prices execution, verification, protocol, storage, and
+settlement. `priceBasis=local-fixture` must be shown as such and is not a live
+market quote. At acceptance the local customer service verifies the signed
+quote, task maximum, selected offer signatures, selected offer amounts,
+currency/skill match, expiry, distinct peers, and snapshot hash. If an offer
+expires or changes, the customer must accept a new quote. Local settlement
+checks every payout against the accepted component budgets and conserves the
+full funded quote by paying or refunding it.
+
+Protocol v2 atomic values do not exceed `2^53 - 1`. This limit keeps JSON number
+arithmetic exact in both Python and JavaScript clients. A future protocol that
+needs larger values must encode them as canonical decimal strings and update
+the cross-language signing schema.
 
 ## Local escrow rules
 

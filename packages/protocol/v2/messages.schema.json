@@ -4,6 +4,80 @@
   "title": "AI Mining Network protocol v2",
   "description": "Signed envelopes wrap typed payloads; canonical JSON and EIP-712 rules are specified in docs/protocol.md.",
   "$defs": {
+    "Currency": {
+      "additionalProperties": false,
+      "properties": {
+        "chainId": {
+          "exclusiveMinimum": 0,
+          "title": "Chainid",
+          "type": "integer"
+        },
+        "tokenAddress": {
+          "title": "Tokenaddress",
+          "type": "string"
+        },
+        "decimals": {
+          "maximum": 36,
+          "minimum": 0,
+          "title": "Decimals",
+          "type": "integer"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "chainId",
+        "tokenAddress",
+        "decimals",
+        "symbol"
+      ],
+      "title": "Currency",
+      "type": "object"
+    },
+    "ResourceRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "cpuCores": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Cpucores",
+          "type": "integer"
+        },
+        "ramBytes": {
+          "default": 1073741824,
+          "minimum": 1,
+          "title": "Rambytes",
+          "type": "integer"
+        },
+        "vramBytes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Vrambytes",
+          "type": "integer"
+        },
+        "gpuRequired": {
+          "default": false,
+          "title": "Gpurequired",
+          "type": "boolean"
+        },
+        "networkAccess": {
+          "default": false,
+          "title": "Networkaccess",
+          "type": "boolean"
+        },
+        "timeoutSeconds": {
+          "default": 600,
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Timeoutseconds",
+          "type": "integer"
+        }
+      },
+      "title": "ResourceRequirements",
+      "type": "object"
+    },
     "SkillManifest": {
       "$defs": {
         "ResourceRequirements": {
@@ -136,7 +210,105 @@
       "title": "SkillManifest",
       "type": "object"
     },
+    "BenchmarkMeasurementProvenance": {
+      "additionalProperties": false,
+      "description": "Self-reported environment and collector details; not hardware attestation.",
+      "properties": {
+        "measurementMode": {
+          "default": "self-reported",
+          "enum": [
+            "self-reported",
+            "independent-observer",
+            "trusted-hardware-attestation"
+          ],
+          "title": "Measurementmode",
+          "type": "string"
+        },
+        "collectorVersion": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Collectorversion",
+          "type": "string"
+        },
+        "measurementId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Measurementid",
+          "type": "string"
+        },
+        "environmentHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Environmenthash",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Limitations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "collectorVersion",
+        "measurementId",
+        "environmentHash"
+      ],
+      "title": "BenchmarkMeasurementProvenance",
+      "type": "object"
+    },
     "SkillBenchmark": {
+      "$defs": {
+        "BenchmarkMeasurementProvenance": {
+          "additionalProperties": false,
+          "description": "Self-reported environment and collector details; not hardware attestation.",
+          "properties": {
+            "measurementMode": {
+              "default": "self-reported",
+              "enum": [
+                "self-reported",
+                "independent-observer",
+                "trusted-hardware-attestation"
+              ],
+              "title": "Measurementmode",
+              "type": "string"
+            },
+            "collectorVersion": {
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Collectorversion",
+              "type": "string"
+            },
+            "measurementId": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Measurementid",
+              "type": "string"
+            },
+            "environmentHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Environmenthash",
+              "type": "string"
+            },
+            "limitations": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Limitations",
+              "type": "array"
+            }
+          },
+          "required": [
+            "collectorVersion",
+            "measurementId",
+            "environmentHash"
+          ],
+          "title": "BenchmarkMeasurementProvenance",
+          "type": "object"
+        }
+      },
       "additionalProperties": false,
       "properties": {
         "kind": {
@@ -146,11 +318,12 @@
           "type": "string"
         },
         "benchmarkVersion": {
-          "default": "invoice-synthetic-v1",
+          "default": "invoice-synthetic-v2",
           "title": "Benchmarkversion",
           "type": "string"
         },
         "skillHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
           "title": "Skillhash",
           "type": "string"
         },
@@ -163,6 +336,11 @@
           "title": "Runtime",
           "type": "string"
         },
+        "runtimeDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Runtimedigest",
+          "type": "string"
+        },
         "modelDigest": {
           "title": "Modeldigest",
           "type": "string"
@@ -171,10 +349,42 @@
           "title": "Hardwareclass",
           "type": "string"
         },
+        "warmColdPolicy": {
+          "enum": [
+            "warm-after-single-warmup",
+            "cold-per-sample",
+            "natural-cache-state"
+          ],
+          "title": "Warmcoldpolicy",
+          "type": "string"
+        },
         "sampleCount": {
-          "minimum": 1,
+          "minimum": 20,
           "title": "Samplecount",
           "type": "integer"
+        },
+        "durationSamplesMs": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 100000,
+          "minItems": 20,
+          "title": "Durationsamplesms",
+          "type": "array"
+        },
+        "durationVarianceMs2": {
+          "minimum": 0,
+          "title": "Durationvariancems2",
+          "type": "integer"
+        },
+        "outputValidationResults": {
+          "items": {
+            "type": "boolean"
+          },
+          "maxItems": 100000,
+          "minItems": 20,
+          "title": "Outputvalidationresults",
+          "type": "array"
         },
         "inputTokens": {
           "minimum": 0,
@@ -209,6 +419,23 @@
           "default": null,
           "title": "Cpuaveragemillipct"
         },
+        "cpuSamplesMilliPct": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "maxItems": 100000,
+              "minItems": 20,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cpusamplesmillipct"
+        },
         "peakRamBytes": {
           "anyOf": [
             {
@@ -221,6 +448,23 @@
           ],
           "default": null,
           "title": "Peakrambytes"
+        },
+        "ramSamplesBytes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "maxItems": 100000,
+              "minItems": 20,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ramsamplesbytes"
         },
         "peakVramBytes": {
           "anyOf": [
@@ -246,6 +490,9 @@
           "title": "Outputvalidationpasses",
           "type": "integer"
         },
+        "measurementProvenance": {
+          "$ref": "#/$defs/BenchmarkMeasurementProvenance"
+        },
         "selfReportedMetrics": {
           "default": true,
           "title": "Selfreportedmetrics",
@@ -260,15 +507,21 @@
         "skillHash",
         "datasetHash",
         "runtime",
+        "runtimeDigest",
         "modelDigest",
         "hardwareClass",
+        "warmColdPolicy",
         "sampleCount",
+        "durationSamplesMs",
+        "durationVarianceMs2",
+        "outputValidationResults",
         "inputTokens",
         "outputTokens",
         "p50DurationMs",
         "p90DurationMs",
         "successRateBps",
         "outputValidationPasses",
+        "measurementProvenance",
         "receiptId"
       ],
       "title": "SkillBenchmark",
@@ -402,6 +655,70 @@
       "title": "ValidatorCapabilities",
       "type": "object"
     },
+    "OfferCapabilities": {
+      "additionalProperties": false,
+      "description": "Capacity advertised by an offer; signed claims are not hardware attestation.",
+      "properties": {
+        "available": {
+          "default": true,
+          "title": "Available",
+          "type": "boolean"
+        },
+        "cpuCores": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cpucores",
+          "type": "integer"
+        },
+        "ramBytes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Rambytes",
+          "type": "integer"
+        },
+        "gpuModels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gpumodels",
+          "type": "array"
+        },
+        "vramBytes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Vrambytes",
+          "type": "integer"
+        },
+        "modelDigests": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Modeldigests",
+          "type": "array"
+        },
+        "runtimeDigests": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Runtimedigests",
+          "type": "array"
+        },
+        "verificationStrategies": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Verificationstrategies",
+          "type": "array"
+        },
+        "supportsNetworkAccess": {
+          "default": false,
+          "title": "Supportsnetworkaccess",
+          "type": "boolean"
+        }
+      },
+      "title": "OfferCapabilities",
+      "type": "object"
+    },
     "MinerOffer": {
       "$defs": {
         "Currency": {
@@ -434,6 +751,70 @@
             "symbol"
           ],
           "title": "Currency",
+          "type": "object"
+        },
+        "OfferCapabilities": {
+          "additionalProperties": false,
+          "description": "Capacity advertised by an offer; signed claims are not hardware attestation.",
+          "properties": {
+            "available": {
+              "default": true,
+              "title": "Available",
+              "type": "boolean"
+            },
+            "cpuCores": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Cpucores",
+              "type": "integer"
+            },
+            "ramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Rambytes",
+              "type": "integer"
+            },
+            "gpuModels": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gpumodels",
+              "type": "array"
+            },
+            "vramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vrambytes",
+              "type": "integer"
+            },
+            "modelDigests": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Modeldigests",
+              "type": "array"
+            },
+            "runtimeDigests": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Runtimedigests",
+              "type": "array"
+            },
+            "verificationStrategies": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Verificationstrategies",
+              "type": "array"
+            },
+            "supportsNetworkAccess": {
+              "default": false,
+              "title": "Supportsnetworkaccess",
+              "type": "boolean"
+            }
+          },
+          "title": "OfferCapabilities",
           "type": "object"
         },
         "ResourceRequirements": {
@@ -500,6 +881,7 @@
           "type": "string"
         },
         "priceAtomic": {
+          "maximum": 9007199254740991,
           "minimum": 0,
           "title": "Priceatomic",
           "type": "integer"
@@ -519,6 +901,26 @@
         },
         "requirements": {
           "$ref": "#/$defs/ResourceRequirements"
+        },
+        "offerSource": {
+          "default": "local-fixture",
+          "enum": [
+            "local-fixture",
+            "provider-offer"
+          ],
+          "title": "Offersource",
+          "type": "string"
+        },
+        "availableResources": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OfferCapabilities"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -671,6 +1073,7 @@
           "type": "string"
         },
         "maxPriceAtomic": {
+          "maximum": 9007199254740991,
           "minimum": 0,
           "title": "Maxpriceatomic",
           "type": "integer"
@@ -762,22 +1165,40 @@
           "type": "string"
         },
         "executionRewardAtomic": {
+          "maximum": 9007199254740991,
           "minimum": 0,
           "title": "Executionrewardatomic",
           "type": "integer"
         },
         "verificationBudgetAtomic": {
+          "maximum": 9007199254740991,
           "minimum": 0,
           "title": "Verificationbudgetatomic",
           "type": "integer"
         },
         "protocolFeeAtomic": {
           "default": 0,
+          "maximum": 9007199254740991,
           "minimum": 0,
           "title": "Protocolfeeatomic",
           "type": "integer"
         },
+        "storageBudgetAtomic": {
+          "default": 0,
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Storagebudgetatomic",
+          "type": "integer"
+        },
+        "settlementBudgetAtomic": {
+          "default": 0,
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Settlementbudgetatomic",
+          "type": "integer"
+        },
         "totalAtomic": {
+          "maximum": 9007199254740991,
           "minimum": 0,
           "title": "Totalatomic",
           "type": "integer"
@@ -801,6 +1222,25 @@
           "minItems": 1,
           "title": "Validatorofferids",
           "type": "array"
+        },
+        "priceBasis": {
+          "default": "local-fixture",
+          "enum": [
+            "compatible-offers",
+            "local-fixture"
+          ],
+          "title": "Pricebasis",
+          "type": "string"
+        },
+        "offerSnapshotHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Offersnapshothash",
+          "type": "string"
+        },
+        "assumptions": {
+          "additionalProperties": true,
+          "title": "Assumptions",
+          "type": "object"
         },
         "sampleCount": {
           "minimum": 1,
@@ -833,6 +1273,7 @@
         "expiresAt",
         "executorOfferId",
         "validatorOfferIds",
+        "offerSnapshotHash",
         "sampleCount",
         "validatorCount",
         "failureRules",
@@ -1256,6 +1697,7 @@
               "type": "string"
             },
             "amountAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Amountatomic",
               "type": "integer"
@@ -1324,6 +1766,7 @@
           "type": "array"
         },
         "totalChargedAtomic": {
+          "maximum": 9007199254740991,
           "minimum": 0,
           "title": "Totalchargedatomic",
           "type": "integer"
@@ -1451,6 +1894,54 @@
     },
     "SignedMessage": {
       "$defs": {
+        "BenchmarkMeasurementProvenance": {
+          "additionalProperties": false,
+          "description": "Self-reported environment and collector details; not hardware attestation.",
+          "properties": {
+            "measurementMode": {
+              "default": "self-reported",
+              "enum": [
+                "self-reported",
+                "independent-observer",
+                "trusted-hardware-attestation"
+              ],
+              "title": "Measurementmode",
+              "type": "string"
+            },
+            "collectorVersion": {
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Collectorversion",
+              "type": "string"
+            },
+            "measurementId": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Measurementid",
+              "type": "string"
+            },
+            "environmentHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Environmenthash",
+              "type": "string"
+            },
+            "limitations": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Limitations",
+              "type": "array"
+            }
+          },
+          "required": [
+            "collectorVersion",
+            "measurementId",
+            "environmentHash"
+          ],
+          "title": "BenchmarkMeasurementProvenance",
+          "type": "object"
+        },
         "Currency": {
           "additionalProperties": false,
           "properties": {
@@ -1587,6 +2078,7 @@
               "type": "string"
             },
             "maxPriceAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Maxpriceatomic",
               "type": "integer"
@@ -1765,22 +2257,40 @@
               "type": "string"
             },
             "executionRewardAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Executionrewardatomic",
               "type": "integer"
             },
             "verificationBudgetAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Verificationbudgetatomic",
               "type": "integer"
             },
             "protocolFeeAtomic": {
               "default": 0,
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Protocolfeeatomic",
               "type": "integer"
             },
+            "storageBudgetAtomic": {
+              "default": 0,
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Storagebudgetatomic",
+              "type": "integer"
+            },
+            "settlementBudgetAtomic": {
+              "default": 0,
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Settlementbudgetatomic",
+              "type": "integer"
+            },
             "totalAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Totalatomic",
               "type": "integer"
@@ -1804,6 +2314,25 @@
               "minItems": 1,
               "title": "Validatorofferids",
               "type": "array"
+            },
+            "priceBasis": {
+              "default": "local-fixture",
+              "enum": [
+                "compatible-offers",
+                "local-fixture"
+              ],
+              "title": "Pricebasis",
+              "type": "string"
+            },
+            "offerSnapshotHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Offersnapshothash",
+              "type": "string"
+            },
+            "assumptions": {
+              "additionalProperties": true,
+              "title": "Assumptions",
+              "type": "object"
             },
             "sampleCount": {
               "minimum": 1,
@@ -1836,6 +2365,7 @@
             "expiresAt",
             "executorOfferId",
             "validatorOfferIds",
+            "offerSnapshotHash",
             "sampleCount",
             "validatorCount",
             "failureRules",
@@ -2001,6 +2531,7 @@
               "type": "string"
             },
             "priceAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Priceatomic",
               "type": "integer"
@@ -2020,6 +2551,26 @@
             },
             "requirements": {
               "$ref": "#/$defs/ResourceRequirements"
+            },
+            "offerSource": {
+              "default": "local-fixture",
+              "enum": [
+                "local-fixture",
+                "provider-offer"
+              ],
+              "title": "Offersource",
+              "type": "string"
+            },
+            "availableResources": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OfferCapabilities"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
             }
           },
           "required": [
@@ -2032,6 +2583,70 @@
             "expiresAt"
           ],
           "title": "MinerOffer",
+          "type": "object"
+        },
+        "OfferCapabilities": {
+          "additionalProperties": false,
+          "description": "Capacity advertised by an offer; signed claims are not hardware attestation.",
+          "properties": {
+            "available": {
+              "default": true,
+              "title": "Available",
+              "type": "boolean"
+            },
+            "cpuCores": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Cpucores",
+              "type": "integer"
+            },
+            "ramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Rambytes",
+              "type": "integer"
+            },
+            "gpuModels": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gpumodels",
+              "type": "array"
+            },
+            "vramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vrambytes",
+              "type": "integer"
+            },
+            "modelDigests": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Modeldigests",
+              "type": "array"
+            },
+            "runtimeDigests": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Runtimedigests",
+              "type": "array"
+            },
+            "verificationStrategies": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Verificationstrategies",
+              "type": "array"
+            },
+            "supportsNetworkAccess": {
+              "default": false,
+              "title": "Supportsnetworkaccess",
+              "type": "boolean"
+            }
+          },
+          "title": "OfferCapabilities",
           "type": "object"
         },
         "PaymentSettlement": {
@@ -2079,6 +2694,7 @@
               "type": "array"
             },
             "totalChargedAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Totalchargedatomic",
               "type": "integer"
@@ -2110,6 +2726,7 @@
               "type": "string"
             },
             "amountAtomic": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "title": "Amountatomic",
               "type": "integer"
@@ -2185,11 +2802,12 @@
               "type": "string"
             },
             "benchmarkVersion": {
-              "default": "invoice-synthetic-v1",
+              "default": "invoice-synthetic-v2",
               "title": "Benchmarkversion",
               "type": "string"
             },
             "skillHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
               "title": "Skillhash",
               "type": "string"
             },
@@ -2202,6 +2820,11 @@
               "title": "Runtime",
               "type": "string"
             },
+            "runtimeDigest": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Runtimedigest",
+              "type": "string"
+            },
             "modelDigest": {
               "title": "Modeldigest",
               "type": "string"
@@ -2210,10 +2833,42 @@
               "title": "Hardwareclass",
               "type": "string"
             },
+            "warmColdPolicy": {
+              "enum": [
+                "warm-after-single-warmup",
+                "cold-per-sample",
+                "natural-cache-state"
+              ],
+              "title": "Warmcoldpolicy",
+              "type": "string"
+            },
             "sampleCount": {
-              "minimum": 1,
+              "minimum": 20,
               "title": "Samplecount",
               "type": "integer"
+            },
+            "durationSamplesMs": {
+              "items": {
+                "type": "integer"
+              },
+              "maxItems": 100000,
+              "minItems": 20,
+              "title": "Durationsamplesms",
+              "type": "array"
+            },
+            "durationVarianceMs2": {
+              "minimum": 0,
+              "title": "Durationvariancems2",
+              "type": "integer"
+            },
+            "outputValidationResults": {
+              "items": {
+                "type": "boolean"
+              },
+              "maxItems": 100000,
+              "minItems": 20,
+              "title": "Outputvalidationresults",
+              "type": "array"
             },
             "inputTokens": {
               "minimum": 0,
@@ -2248,6 +2903,23 @@
               "default": null,
               "title": "Cpuaveragemillipct"
             },
+            "cpuSamplesMilliPct": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "maxItems": 100000,
+                  "minItems": 20,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cpusamplesmillipct"
+            },
             "peakRamBytes": {
               "anyOf": [
                 {
@@ -2260,6 +2932,23 @@
               ],
               "default": null,
               "title": "Peakrambytes"
+            },
+            "ramSamplesBytes": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "maxItems": 100000,
+                  "minItems": 20,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Ramsamplesbytes"
             },
             "peakVramBytes": {
               "anyOf": [
@@ -2285,6 +2974,9 @@
               "title": "Outputvalidationpasses",
               "type": "integer"
             },
+            "measurementProvenance": {
+              "$ref": "#/$defs/BenchmarkMeasurementProvenance"
+            },
             "selfReportedMetrics": {
               "default": true,
               "title": "Selfreportedmetrics",
@@ -2299,15 +2991,21 @@
             "skillHash",
             "datasetHash",
             "runtime",
+            "runtimeDigest",
             "modelDigest",
             "hardwareClass",
+            "warmColdPolicy",
             "sampleCount",
+            "durationSamplesMs",
+            "durationVarianceMs2",
+            "outputValidationResults",
             "inputTokens",
             "outputTokens",
             "p50DurationMs",
             "p90DurationMs",
             "successRateBps",
             "outputValidationPasses",
+            "measurementProvenance",
             "receiptId"
           ],
           "title": "SkillBenchmark",
@@ -2852,6 +3550,38 @@
         "signature"
       ],
       "title": "SignedMessage",
+      "type": "object"
+    },
+    "Payout": {
+      "additionalProperties": false,
+      "properties": {
+        "payee": {
+          "title": "Payee",
+          "type": "string"
+        },
+        "amountAtomic": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Amountatomic",
+          "type": "integer"
+        },
+        "purpose": {
+          "enum": [
+            "execution",
+            "verification",
+            "protocol-fee",
+            "refund"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "payee",
+        "amountAtomic",
+        "purpose"
+      ],
+      "title": "Payout",
       "type": "object"
     }
   }

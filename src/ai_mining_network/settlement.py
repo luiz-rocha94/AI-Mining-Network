@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .canonical import content_hash
-from .models import Currency, Payout, PaymentSettlement
+from .models import Currency, FixedPriceQuote, PaymentSettlement, Payout
 from .state_machine import EventLog
 
 
@@ -61,4 +61,32 @@ def settle_once(event_log: EventLog, settlement: PaymentSettlement) -> tuple[dic
     if applied:
         event_log.append(settlement.taskId, "payment.settled", stored)
     return stored, applied
+
+
+def validate_settlement_within_quote(
+    settlement: PaymentSettlement, quote: FixedPriceQuote | dict
+) -> None:
+    """Fail closed if a settlement does not conserve the accepted quote."""
+    accepted = quote if isinstance(quote, FixedPriceQuote) else FixedPriceQuote.model_validate(quote)
+    if settlement.taskId != accepted.taskId or settlement.quoteId != accepted.quoteId:
+        raise ValueError("settlement is not bound to the accepted task and quote")
+    if settlement.currency != accepted.currency:
+        raise ValueError("settlement currency differs from the accepted quote")
+    purpose_limits = {
+        "execution": accepted.executionRewardAtomic,
+        "verification": accepted.verificationBudgetAtomic,
+        "protocol-fee": accepted.protocolFeeAtomic,
+    }
+    for purpose, limit in purpose_limits.items():
+        paid = sum(payout.amountAtomic for payout in settlement.payouts if payout.purpose == purpose)
+        if paid > limit:
+            raise ValueError(f"settlement {purpose} payouts exceed the accepted quote component")
+    total_payout = sum(payout.amountAtomic for payout in settlement.payouts)
+    if total_payout != accepted.totalAtomic:
+        raise ValueError("settlement must allocate or refund the complete accepted quote")
+    charged = sum(payout.amountAtomic for payout in settlement.payouts if payout.payee != "customer")
+    if settlement.totalChargedAtomic != charged:
+        raise ValueError("settlement totalChargedAtomic does not match its non-customer payouts")
+    if charged > accepted.totalAtomic:
+        raise ValueError("settlement exceeds the customer-approved quote ceiling")
 

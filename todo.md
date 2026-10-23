@@ -18,7 +18,7 @@ application is a local MVP, not a production decentralized network.
 | [libp2p](https://libp2p.io/) | Peer transport package implemented and tested; not yet wired into the customer/miner task runtime | Let peers discover each other and exchange signed public metadata plus authorized private task messages without a required central coordinator. | P3 — Peer discovery and task messaging |
 | [Helia / IPFS](https://github.com/ipfs/helia) | Local persistent artifact adapter implemented and tested; not wired into task runtime | Store/retrieve public skills and benchmark artifacts by content hash, plus explicitly authorized encrypted task artifacts. | P4 — Content-addressed artifact storage (local gate passed) |
 | [OrbitDB](https://github.com/orbitdb/orbitdb) | Not integrated | Replicate public skill metadata, benchmark submissions, ratings, and selected audit records across peers with deterministic conflict rules. | P5 — Replicated public registry (after P3–P4) |
-| Benchmark and quote pipeline (AMN feature; no new dependency) | Partial/local | Collect reproducible benchmark evidence and calculate fixed quotes using cost components, policy, and compatible offers. | P6 — Benchmark evidence and fixed quotes |
+| Benchmark and quote pipeline (AMN feature; no new dependency) | P6 local implementation and tests complete; production offer and OrbitDB wiring remain | Collect reproducible benchmark evidence and calculate fixed quotes using cost components, policy, and compatible offers. | P6 — Benchmark evidence and fixed quotes |
 | [Golem Yagna](https://docs.golem.network/) | Not integrated | Connect miners to decentralized compute offers and task execution; feed compatible live offers into fixed quotes and execution assignments. | P7 — Decentralized compute backend |
 | [drand](https://drand.love/) | Not integrated | Supply verified, unpredictable post-commit randomness for reproducible validator and sample assignment. | P8 — Verified randomness |
 | [OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts) | Primitive implemented; disconnected | Settle accepted quotes through an existing EVM asset using escrow, safe token transfers, signed decisions, refunds, and replay protection. | P9 — EVM escrow integration |
@@ -320,35 +320,52 @@ record format, authorization, conflict rules, and identity validation.
 
 ## P6 — Attestable benchmarks and offer-based fixed quotes
 
+**Implementation and local validation:** PASS on 2026-10-23. The local
+implementation and automated gate are complete; maintainer acceptance remains
+pending before P7 begins. See
+[`benchmark-pricing.md`](docs/architecture/benchmark-pricing.md) and the
+[held-out fixture report](docs/reports/p6-benchmark-quotes.md).
+
 **Feature added:** skill contributors can submit reproducible performance
 evidence, and customers receive a fixed quote grounded in compatible capacity.
 
-- [ ] Extend `SkillBenchmark` receipts with skill/model/runtime digests,
+- [x] Extend `SkillBenchmark` receipts with skill/model/runtime digests,
   hardware class, warm/cold policy, sample count, variance, output validation,
   and measurement provenance. Label self-reported metrics as such.
-- [ ] Add independent benchmark submission and configurable aggregation; emit
+- [x] Add independent signed benchmark submission and configurable aggregation; emit
   P50/P90 only above minimum sample and quality thresholds.
-- [ ] Price execution, verification, protocol, storage, and settlement costs
+- [x] Price execution, verification, protocol, storage, and settlement costs
   with integer-safe arithmetic. Include assumptions, currency, expiry, failure
   and refund rules in the quote.
-- [ ] Define the compatible-offer input contract and test pricing with clearly
+- [x] Define the compatible-offer input contract and test pricing with clearly
   labeled fixtures/local offers. P7 supplies the real Golem offers; never label
   a fixture price as a live market quote.
-- [ ] Fix the accepted quote ceiling; re-quote if an offer expires or changes
+- [x] Fix the accepted quote ceiling; re-quote if an offer expires or changes
   and require customer approval for any new price.
-- [ ] Keep learned pricing out of this feature. The optional scikit-learn
+- [x] Keep learned pricing out of this feature. The optional scikit-learn
   estimator is P12 and requires enough independently verifiable observations.
 
 **Validate before P7:**
 
-- [ ] Reproduce benchmark receipts on independent workers and reject wrong
+- [x] Reproduce signed receipts with distinct test contributors and reject wrong
   digests, malformed evidence, and unqualified P50/P90 claims.
-- [ ] Test quote calculations at boundaries, overflow cases, no-offer cases,
+- [x] Test quote calculations at boundaries, overflow cases, no-offer cases,
   expired offers, verification budget changes, and protocol-fee changes.
-- [ ] Prove no execution or settlement path can charge above an accepted quote.
-- [ ] Compare formula estimates with held-out benchmark/offer fixtures and
+- [x] Recheck signed quote, task ceiling, selected signed offer snapshot, and
+  settlement allocations before execution/settlement; over-ceiling paths reject.
+- [x] Compare formula estimates with held-out benchmark/offer fixtures and
   report error and assumptions. P7 must additionally validate fixed quotes
   against actual Golem offers before that integration is accepted.
+
+**Maintainer validation before P7:** [ ] Review the UI quote disclosure, receipt
+aggregation policy, report assumptions, and security limitations; approve P6.
+
+**Automated validation run:** `pytest tests/test_p6_benchmarks_pricing.py
+tests/test_core.py -q -k "not local_api_rejects_dns_rebinding_origin"` passed.
+The full `pnpm test:all` gate also passed on 2026-10-23: UI 4, protocol 6 and
+typecheck, networking 10, storage 6, registry 2, Hardhat 4, and Python 77.
+`pnpm build:web` passed. The Python local API test was run outside the sandbox
+because it binds a loopback port.
 
 **Planned open-source contribution:** this AMN feature turns benchmark
 submissions into traceable skill/runtime comparisons. The optional

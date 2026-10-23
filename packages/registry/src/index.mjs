@@ -30,10 +30,9 @@ const PRIVATE_OR_UNSUPPORTED_KINDS = new Set([
 const MAX_RECORD_BYTES = 256 * 1024;
 const MESSAGE_SCHEMA = JSON.parse(readFileSync(new URL("../../protocol/v2/messages.schema.json", import.meta.url), "utf8"));
 const REGISTRY_SCHEMA = JSON.parse(readFileSync(new URL("../schemas/public-records.schema.json", import.meta.url), "utf8"));
-// The protocol's generated SkillManifest schema refers to this nested model
-// from the document root. Add the expected root alias in the validator copy.
+// The generated protocol schema keeps shared models at the document root so
+// references remain valid for independent JSON Schema validators.
 const REGISTRY_MESSAGE_SCHEMA = structuredClone(MESSAGE_SCHEMA);
-REGISTRY_MESSAGE_SCHEMA.$defs.ResourceRequirements = structuredClone(MESSAGE_SCHEMA.$defs.SkillManifest.$defs.ResourceRequirements);
 const ajv = new Ajv2020({ allErrors: true, strict: false });
 ajv.addSchema(REGISTRY_MESSAGE_SCHEMA);
 ajv.addSchema(REGISTRY_SCHEMA);

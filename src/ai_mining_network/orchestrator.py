@@ -48,18 +48,21 @@ from .models import (
     CustomerTask,
     ExecutionCommitment,
     ExecutionContract,
+    FixedPriceQuote,
     MinerOffer,
+    OfferCapabilities,
     PaymentSettlement,
     ResourceRequirements,
+    SignedMessage,
     SkillRating,
     VerificationAssignment,
     VerificationDecision,
     VerificationReceipt,
 )
-from .pricing import fixed_quote
+from .pricing import currency_matches, fixed_quote, local_fixture_offer_prices
 from .randomness import SimulatedBeacon, challenge_seed, select_units, select_validators
 from .registry import LocalSkillRegistry, read_skill, read_skill_instructions
-from .settlement import create_settlement, settle_once
+from .settlement import create_settlement, settle_once, validate_settlement_within_quote
 from .signing import create_message, verify_message
 from .skill_packages import SkillPackageError, validate_json_value
 from .state_machine import EventLog, InvalidTransition, validate_transition
@@ -852,6 +855,8 @@ class DemoService:
                     "executionRewardAtomic": estimate["executionRewardAtomic"],
                     "verificationBudgetAtomic": estimate["verificationBudgetAtomic"],
                     "protocolFeeAtomic": estimate["protocolFeeAtomic"],
+                    "storageBudgetAtomic": estimate["storageBudgetAtomic"],
+                    "settlementBudgetAtomic": estimate["settlementBudgetAtomic"],
                     "inputTokensEstimated": estimate["inputTokensEstimated"],
                     "outputTokensEstimated": estimate["outputTokensEstimated"],
                     "sampledInputTokensEstimated": estimate[
@@ -866,6 +871,8 @@ class DemoService:
             "executionRewardAtomic",
             "verificationBudgetAtomic",
             "protocolFeeAtomic",
+            "storageBudgetAtomic",
+            "settlementBudgetAtomic",
             "inputTokensEstimated",
             "outputTokensEstimated",
             "sampledInputTokensEstimated",
@@ -873,8 +880,9 @@ class DemoService:
             "p90DurationMs",
         )
         pricing = {
-            "pricingMethod": "sum-of-skill-estimates-v1",
+            "pricingMethod": "sum-of-skill-estimates-v2",
             "currency": "TESTUSD",
+            "priceBasis": "local-fixture",
             **{
                 field: sum(item[field] for item in skill_estimates)
                 for field in summed_fields
@@ -882,6 +890,12 @@ class DemoService:
             "estimatedTokensPerSecond": skill_estimates[0]["estimatedTokensPerSecond"],
             "selfReportedOrEstimated": True,
             "skills": skill_estimates,
+            "assumptions": {
+                "source": "local fixture offers generated from the per-skill rate card",
+                "benchmark": "no independent task-specific benchmark is available for arbitrary customer workflows",
+                "storageAndSettlement": "zero-priced by the local SQLite/filesystem adapter",
+                "repriceOnOfferChange": True,
+            },
             "explanation": "The fixed total sums the local TESTUSD estimate for every skill node, including verification work. This is not a live miner offer or benchmark guarantee.",
         }
         customer = Account.from_key(load_or_create_private_key(self.root, "customer"))
@@ -933,6 +947,13 @@ class DemoService:
             estimatedDurationMs=pricing["p90DurationMs"],
             expiresAt=expiry,
             requirements=requirements,
+            offerSource="local-fixture",
+            availableResources=OfferCapabilities(
+                available=True,
+                cpuCores=1,
+                ramBytes=2_147_483_648,
+                modelDigests=[runner.model_digest],
+            ),
         )
         validator_offers = []
         per_validator = pricing["verificationBudgetAtomic"] // validator_count
@@ -954,6 +975,14 @@ class DemoService:
                     ),
                     expiresAt=expiry,
                     requirements=requirements,
+                    offerSource="local-fixture",
+                    availableResources=OfferCapabilities(
+                        available=True,
+                        cpuCores=1,
+                        ramBytes=2_147_483_648,
+                        modelDigests=[runner.model_digest],
+                        verificationStrategies=["per-document"],
+                    ),
                 )
             )
         quote = fixed_quote(
@@ -965,6 +994,20 @@ class DemoService:
             validator_count=validator_count,
             max_price_atomic=task.maxPriceAtomic,
             required_skill_hash=task.skillHash,
+            required_resources=requirements,
+            required_model_digest=runner.model_digest,
+            required_verification_strategy="per-document",
+            protocol_fee_atomic=pricing["protocolFeeAtomic"],
+            storage_budget_atomic=pricing["storageBudgetAtomic"],
+            settlement_budget_atomic=pricing["settlementBudgetAtomic"],
+            assumptions={
+                "pricingMethod": pricing["pricingMethod"],
+                "skills": [
+                    {"nodeId": item["nodeId"], "name": item["name"], "skillHash": item["skillHash"]}
+                    for item in skill_estimates
+                ],
+                "rateCard": pricing["assumptions"],
+            },
         )
         quote.verificationPolicy = {
             **quote.verificationPolicy,
@@ -1204,6 +1247,22 @@ class DemoService:
             validator_count=validator_count,
             max_price_atomic=task.maxPriceAtomic,
             required_skill_hash=task.skillHash,
+            required_resources=ResourceRequirements(
+                cpuCores=1, ramBytes=2_147_483_648, timeoutSeconds=3600
+            ),
+            required_model_digest=benchmark.modelDigest,
+            required_runtime_digest=benchmark.runtimeDigest,
+            required_verification_strategy="per-document",
+            assumptions={
+                "benchmarkReceiptId": benchmark.receiptId,
+                "benchmarkVersion": benchmark.benchmarkVersion,
+                "benchmarkSampleCount": benchmark.sampleCount,
+                "benchmarkMetricsAreSelfReported": benchmark.selfReportedMetrics,
+                "estimatedDurationBasis": "benchmark P90 per input unit",
+                "localStorageCost": 0,
+                "localSettlementCost": 0,
+                "localProtocolFee": 0,
+            },
         )
         offer_messages = []
         for offer, account in zip(offers, [executor_account, *validator_accounts]):
@@ -1319,6 +1378,10 @@ class DemoService:
                 self._transition(record, "EXPIRED", "quote.expired", {})
                 self._persist_record(task_id, record)
                 raise DemoError("fixed quote has expired")
+            try:
+                accepted_quote = self._validate_quote_acceptance(record)
+            except (TypeError, ValueError) as exc:
+                raise DemoError(f"quote or selected offer changed; issue a new quote: {exc}") from exc
             # The execution contract is created only at customer acceptance so
             # its acceptance timestamp and deadlines have contractual meaning.
             accepted_at = datetime.now(timezone.utc)
@@ -1350,8 +1413,8 @@ class DemoService:
                 "FUNDED",
                 "escrow.funded",
                 {
-                    "amountAtomic": quote["totalAtomic"],
-                    "currency": quote["currency"]["symbol"],
+                    "amountAtomic": accepted_quote.totalAtomic,
+                    "currency": accepted_quote.currency.symbol,
                 },
             )
             self._transition(
@@ -1373,6 +1436,92 @@ class DemoService:
             self._workers[task_id] = worker
             worker.start()
         return self._public_job(record)
+
+    def _validate_quote_acceptance(self, record: dict) -> FixedPriceQuote:
+        """Recheck signed quote, ceiling, offer freshness, and offer snapshot at acceptance."""
+        quote = FixedPriceQuote.model_validate(record["quote"])
+        task = CustomerTask.model_validate(record["task"])
+        task_envelope = SignedMessage.model_validate(record["taskMessage"])
+        if (
+            not isinstance(task_envelope.payload, CustomerTask)
+            or task_envelope.payload != task
+            or not verify_message(task_envelope)
+            or task_envelope.signer.lower()
+            != Account.from_key(record["customerPrivateKey"]).address.lower()
+        ):
+            raise ValueError("signed task payload does not match its stored price ceiling")
+        if quote.taskId != task.taskId or quote.totalAtomic > task.maxPriceAtomic:
+            raise ValueError("quote is not bound to this task or exceeds its accepted maximum")
+        if quote.expiresAt > task.deadline:
+            raise ValueError("quote outlives the signed customer task deadline")
+        if any(
+            getattr(quote, name) > 0
+            for name in ("protocolFeeAtomic", "storageBudgetAtomic", "settlementBudgetAtomic")
+        ):
+            raise ValueError(
+                "the local settlement adapter supports zero protocol, storage, and settlement fees only"
+            )
+        quote_envelope = SignedMessage.model_validate(record["quoteMessage"])
+        expected_quote_issuer = Account.from_key(
+            load_or_create_private_key(self.root, "marketplace")
+        ).address
+        if (
+            not isinstance(quote_envelope.payload, FixedPriceQuote)
+            or quote_envelope.payload != quote
+            or not verify_message(quote_envelope)
+            or quote_envelope.signer.lower() != expected_quote_issuer.lower()
+        ):
+            raise ValueError("signed quote payload does not match the stored quote")
+
+        by_id: dict[str, MinerOffer] = {}
+        for raw_envelope in record.get("offerMessages", []):
+            envelope = SignedMessage.model_validate(raw_envelope)
+            if not isinstance(envelope.payload, MinerOffer) or not verify_message(envelope):
+                raise ValueError("selected offer signature is invalid")
+            offer = envelope.payload
+            if envelope.signer.lower() != offer.peerId.lower():
+                raise ValueError("offer signer does not match the offering peer")
+            if offer.offerId in by_id:
+                raise ValueError("duplicate offer ID in task record")
+            by_id[offer.offerId] = offer
+
+        ordered_ids = [quote.executorOfferId, *quote.validatorOfferIds]
+        if any(offer_id not in by_id for offer_id in ordered_ids):
+            raise ValueError("a selected offer is missing; request a replacement quote")
+        selected = [by_id[offer_id] for offer_id in ordered_ids]
+        now = datetime.now(timezone.utc)
+        if any(offer.expiresAt.tzinfo is None or offer.expiresAt <= now for offer in selected):
+            raise ValueError("a selected offer expired; request a replacement quote")
+        if quote.expiresAt > min(offer.expiresAt for offer in selected):
+            raise ValueError("quote outlives a selected offer; request a replacement quote")
+        if any(
+            not currency_matches(offer.currency, quote.currency)
+            or offer.skillHash != task.skillHash
+            for offer in selected
+        ):
+            raise ValueError("a selected offer no longer matches task currency or skill")
+        if selected[0].priceAtomic != quote.executionRewardAtomic:
+            raise ValueError("executor offer price differs from the quote execution reward")
+        if sum(offer.priceAtomic for offer in selected[1:]) != quote.verificationBudgetAtomic:
+            raise ValueError("validator offer prices differ from the quote verification budget")
+        peer_ids = [offer.peerId.lower() for offer in selected]
+        if len(set(peer_ids)) != len(peer_ids):
+            raise ValueError("executor and validators must be distinct peers")
+        if quote.sampleCount != task.verificationSampleCount or quote.validatorCount != task.validatorCount:
+            raise ValueError("quote verification workload differs from the signed task")
+        expected_basis = (
+            "local-fixture"
+            if any(offer.offerSource == "local-fixture" for offer in selected)
+            else "compatible-offers"
+        )
+        if quote.priceBasis != expected_basis:
+            raise ValueError("quote basis does not match the selected offer sources")
+        current_snapshot = content_hash(
+            [offer.model_dump(mode="json") for offer in selected]
+        )
+        if current_snapshot != quote.offerSnapshotHash:
+            raise ValueError("selected offer terms changed after quote issuance")
+        return quote
 
     def _benchmark_if_needed(self, skill_info: dict, extractor: Extractor):
         cache_path = self.state_dir / "benchmark-cache.json"
@@ -1428,9 +1577,11 @@ class DemoService:
     ):
         currency = DemoService._currency()
         p90 = max(1, benchmark.p90DurationMs)
-        execution_price = max(100_000, math.ceil(p90 * invoice_count * 4))
-        per_validator = max(
-            20_000, math.ceil(p90 * math.ceil(sample_count / validator_count) * 4)
+        execution_price, per_validator = local_fixture_offer_prices(
+            p90,
+            invoice_count,
+            sample_count,
+            validator_count,
         )
         expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
         requirements = ResourceRequirements(
@@ -1445,6 +1596,14 @@ class DemoService:
             estimatedDurationMs=p90 * invoice_count,
             expiresAt=expiry,
             requirements=requirements,
+            offerSource="local-fixture",
+            availableResources=OfferCapabilities(
+                available=True,
+                cpuCores=1,
+                ramBytes=2_147_483_648,
+                modelDigests=[benchmark.modelDigest],
+                runtimeDigests=[benchmark.runtimeDigest],
+            ),
         )
         validator_offers = [
             MinerOffer(
@@ -1456,6 +1615,15 @@ class DemoService:
                 estimatedDurationMs=p90 * math.ceil(sample_count / validator_count),
                 expiresAt=expiry,
                 requirements=requirements,
+                offerSource="local-fixture",
+                availableResources=OfferCapabilities(
+                    available=True,
+                    cpuCores=1,
+                    ramBytes=2_147_483_648,
+                    modelDigests=[benchmark.modelDigest],
+                    runtimeDigests=[benchmark.runtimeDigest],
+                    verificationStrategies=["per-document"],
+                ),
             )
             for index, peer in enumerate(validators)
         ]
@@ -1834,6 +2002,7 @@ class DemoService:
             },
             decision_hash=content_hash(decision.model_dump(mode="json")),
         )
+        validate_settlement_within_quote(settlement, record["quote"])
         stored, _ = settle_once(self.event_log, settlement)
         retried, retry_applied = settle_once(self.event_log, settlement)
         if retried != stored or retry_applied:
@@ -2387,6 +2556,7 @@ class DemoService:
             },
             decision_hash=content_hash(decision.model_dump(mode="json")),
         )
+        validate_settlement_within_quote(settlement, record["quote"])
         stored, _ = settle_once(self.event_log, settlement)
         retried, retry_applied = settle_once(self.event_log, settlement)
         if retried != stored or retry_applied:
@@ -2431,6 +2601,7 @@ class DemoService:
             valid_validator_peers=set(),
             decision_hash=content_hash({"taskId": task_id, "reason": reason}),
         )
+        validate_settlement_within_quote(settlement, quote)
         stored, _ = settle_once(self.event_log, settlement)
         record["settlement"] = stored
         record["settlementRetryWasIdempotent"] = not settle_once(

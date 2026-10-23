@@ -24,7 +24,7 @@ The MVP is **not production-ready**. Check each item with code, independent test
 - [ ] Prove the eligible set was fixed independently of the executor before randomness reveal; define stake/identity, conflicts, quorum, slashing, and collusion assumptions.
 - [ ] Define task-specific verification strategies, tolerance, evidence availability, dispute windows, audit escalation, and refund rules before quoting.
 - [ ] Validate randomized assignment fairness and sampling probabilities under adversarial timing, selective retries, unavailable validators, and collusion.
-- [ ] Replicate signed benchmark submissions; bind model digest, runtime image hash, hardware class, output ground truth, resource measurement provenance, and contributor reputation.
+- [ ] Wire P6 benchmark receipts and aggregates into the P5 OrbitDB flow; reproduce them across independent operators, define Sybil/attestation policy, verify model/runtime/hardware profiles, and publish only validated public benchmark metadata. Current receipts and hardware/resource claims are self-reported.
 - [ ] Define public signed reputation schemas and anti-Sybil/rating abuse policies. Never feed subjective ratings into execution settlement.
 
 ## Payments and operations

@@ -5,13 +5,18 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from dataclasses import asdict
 from pathlib import Path
 
-from .benchmark import fraud_detection_probability
+from .benchmark import (
+    BenchmarkAggregationPolicy,
+    aggregate_benchmark_receipts,
+    fraud_detection_probability,
+)
 from .benchmark_service import run_invoice_benchmark
 from .identity import load_or_create_private_key
 from .invoice import OllamaExtractor
-from .models import SkillManifest
+from .models import SignedMessage, SkillManifest
 from .orchestrator import DemoError, DemoService
 from .registry import LocalSkillRegistry, read_skill
 from .signing import create_message
@@ -37,7 +42,17 @@ def _run_demo(args) -> int:
     print("Fixed quote — no charge is made until you accept it:")
     print(f"  Task: {job['task']['taskId']}")
     print(f"  Total: {quote['totalAtomic']} {quote['currency']['symbol']} atomic units")
-    print(f"  Execution: {quote['executionRewardAtomic']} | verification: {quote['verificationBudgetAtomic']}")
+    print(f"  Price basis: {quote['priceBasis']} (fixtures are not live market offers)")
+    print(
+        "  Execution: {execution} | verification: {verification} | protocol: {protocol} | "
+        "storage: {storage} | settlement: {settlement}".format(
+            execution=quote["executionRewardAtomic"],
+            verification=quote["verificationBudgetAtomic"],
+            protocol=quote["protocolFeeAtomic"],
+            storage=quote["storageBudgetAtomic"],
+            settlement=quote["settlementBudgetAtomic"],
+        )
+    )
     print(f"  Expires: {quote['expiresAt']}")
     print(f"  Samples: {quote['sampleCount']} | validators: {quote['validatorCount']}")
     if not args.accept:
@@ -80,6 +95,17 @@ def main() -> None:
     benchmark.add_argument("--ollama-url", default="http://127.0.0.1:11434")
     benchmark.add_argument("--samples", type=int, default=20)
     benchmark.add_argument("--output", type=Path, default=Path(".amn/benchmark-contribution"))
+
+    aggregate = commands.add_parser(
+        "benchmark-aggregate",
+        help="validate and aggregate independently signed benchmark receipts",
+    )
+    aggregate.add_argument("receipts", nargs="+", type=Path)
+    aggregate.add_argument("--minimum-contributors", type=int, default=3)
+    aggregate.add_argument("--minimum-samples-per-contributor", type=int, default=20)
+    aggregate.add_argument("--minimum-total-samples", type=int, default=60)
+    aggregate.add_argument("--minimum-success-rate-bps", type=int, default=9500)
+    aggregate.add_argument("--output", type=Path)
 
     demo = commands.add_parser("demo", help="create and optionally accept a fixed-price invoice task")
     demo.add_argument("--root", type=Path, default=Path.cwd())
@@ -141,6 +167,29 @@ def main() -> None:
         except (ValueError, RuntimeError) as exc:
             parser.exit(2, f"amn benchmark: {exc}\n")
         _json({"benchmark": receipt.model_dump(mode="json"), "report": report, "receiptFile": str(output_dir / "benchmark-receipt.json")})
+        return
+    if args.command == "benchmark-aggregate":
+        try:
+            signed_receipts = [
+                SignedMessage.model_validate_json(path.read_text(encoding="utf-8"))
+                for path in args.receipts
+            ]
+            result = aggregate_benchmark_receipts(
+                signed_receipts,
+                BenchmarkAggregationPolicy(
+                    minimum_contributors=args.minimum_contributors,
+                    minimum_samples_per_contributor=args.minimum_samples_per_contributor,
+                    minimum_total_samples=args.minimum_total_samples,
+                    minimum_success_rate_bps=args.minimum_success_rate_bps,
+                ),
+            )
+        except (OSError, ValueError) as exc:
+            parser.exit(2, f"amn benchmark-aggregate: {exc}\n")
+        report = asdict(result)
+        _json(report)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
         return
     if args.command == "demo":
         try:

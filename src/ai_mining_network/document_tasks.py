@@ -286,7 +286,24 @@ def estimate_price(
         "executionRewardAtomic": execution_atomic,
         "verificationBudgetAtomic": verification_atomic,
         "protocolFeeAtomic": protocol_fee_atomic,
+        "storageBudgetAtomic": 0,
+        "settlementBudgetAtomic": 0,
         "selfReportedOrEstimated": True,
+        "assumptions": {
+            "pricingMethod": "local-estimate-v1",
+            "inputTokenCharactersPerToken": 4,
+            "modelThroughput": "70 / parameter-billions tokens per second, floored at 2",
+            "executionRateAtomicPerInputToken": 4,
+            "executionRateAtomicPerOutputToken": 12,
+            "verificationBaseAtomicPerValidator": 20_000,
+            "storageBudgetAtomic": 0,
+            "settlementBudgetAtomic": 0,
+            "zeroCostReasons": [
+                "local fixture storage has no metered provider charge",
+                "local SQLite settlement has no transaction or gas charge",
+                "local development protocol fee is configured as zero",
+            ],
+        },
         "explanation": "Calculated from extracted text size, a model-size throughput heuristic, verification sample count, and the local TESTUSD rate card. It is not a live decentralized miner offer or a benchmark guarantee.",
     }
 

@@ -35,7 +35,7 @@ type WorkflowSpec = {
 type SavedWorkflow = { workflowId: string; name: string; workflow: WorkflowSpec; skills: Array<{ nodeId: string; name: string; version: string; contentHash: string }>; contentHash: string; createdAt: string; updatedAt: string };
 type Job = {
   task: { taskId: string; inputCount: number; skillName?: string; skillNames?: string[]; model?: string; workflowHash?: string };
-  quote: { quoteId: string; totalAtomic: number; executionRewardAtomic: number; verificationBudgetAtomic: number; protocolFeeAtomic: number; currency: { symbol: string; decimals: number }; expiresAt: string; sampleCount: number; validatorCount: number; verificationPolicy: Record<string, unknown>; failureRules: Record<string, unknown> };
+  quote: { quoteId: string; totalAtomic: number; executionRewardAtomic: number; verificationBudgetAtomic: number; protocolFeeAtomic: number; storageBudgetAtomic?: number; settlementBudgetAtomic?: number; priceBasis?: "compatible-offers" | "local-fixture"; assumptions?: Record<string, unknown>; currency: { symbol: string; decimals: number }; expiresAt: string; sampleCount: number; validatorCount: number; verificationPolicy: Record<string, unknown>; failureRules: Record<string, unknown> };
   state: string;
   progress: string;
   error?: string | null;
@@ -277,7 +277,7 @@ export default function App() {
   const currency = job?.quote.currency.symbol ?? "TESTUSD";
   const format = (amount: number) => job ? `${formatAtomic(amount, job.quote.currency.decimals)} ${currency}` : "";
   const skillEstimates = job && Array.isArray(job.pricing?.skills)
-    ? job.pricing.skills as Array<{ nodeId: string; name: string; executionRewardAtomic: number; verificationBudgetAtomic: number; protocolFeeAtomic: number }>
+    ? job.pricing.skills as Array<{ nodeId: string; name: string; executionRewardAtomic: number; verificationBudgetAtomic: number; protocolFeeAtomic: number; storageBudgetAtomic: number; settlementBudgetAtomic: number }>
     : [];
 
   const addFiles = (selection: FileList | null) => {
@@ -536,10 +536,10 @@ export default function App() {
         </div>
         {job?.state === "QUOTED" && <div className="quote-dock" ref={quoteRef}>
           <div className="quote-dock-total"><span className="quote-check">✓</span><span><small>FIXED PRICE QUOTE</small><strong>{format(job.quote.totalAtomic)}</strong><em>Expires {new Date(job.quote.expiresAt).toLocaleTimeString()}</em></span></div>
-          <div className="quote-dock-details"><div className="quote-cost-row"><span>Execution</span><b>{format(job.quote.executionRewardAtomic)}</b></div><div className="quote-cost-row"><span>Verification ({job.quote.sampleCount} samples · {job.quote.validatorCount} validators)</span><b>{format(job.quote.verificationBudgetAtomic)}</b></div><div className="quote-cost-row"><span>Protocol fee</span><b>{format(job.quote.protocolFeeAtomic)}</b></div>
-            {skillEstimates.length > 0 && <div className="quote-skill-pills">{skillEstimates.map(item => <span key={item.nodeId}>{item.name} <b>{format(item.executionRewardAtomic + item.verificationBudgetAtomic + item.protocolFeeAtomic)}</b></span>)}</div>}
+          <div className="quote-dock-details"><div className="quote-cost-row"><span>Execution</span><b>{format(job.quote.executionRewardAtomic)}</b></div><div className="quote-cost-row"><span>Verification ({job.quote.sampleCount} samples · {job.quote.validatorCount} validators)</span><b>{format(job.quote.verificationBudgetAtomic)}</b></div><div className="quote-cost-row"><span>Protocol fee</span><b>{format(job.quote.protocolFeeAtomic)}</b></div><div className="quote-cost-row"><span>Storage</span><b>{format(job.quote.storageBudgetAtomic ?? 0)}</b></div><div className="quote-cost-row"><span>Settlement</span><b>{format(job.quote.settlementBudgetAtomic ?? 0)}</b></div>
+            {skillEstimates.length > 0 && <div className="quote-skill-pills">{skillEstimates.map(item => <span key={item.nodeId}>{item.name} <b>{format(item.executionRewardAtomic + item.verificationBudgetAtomic + item.protocolFeeAtomic + item.storageBudgetAtomic + item.settlementBudgetAtomic)}</b></span>)}</div>}
           </div>
-          <div className="quote-dock-action"><button className="button primary" type="button" onClick={() => void acceptQuote()} disabled={busy}>{busy ? <><i className="spinner" /> Starting…</> : <>Approve price & run <span>→</span></>}</button><button type="button" className="text-button" onClick={() => setJob(null)} disabled={busy}>Edit workflow</button><details className="small-disclosure"><summary>Quote details</summary><p>{String(job.pricing?.explanation ?? "Fixed local estimate based on task size and available benchmark profile.")}</p><p>The final charge cannot exceed the quote. Customer ratings do not change payment.</p></details></div>
+          <div className="quote-dock-action"><button className="button primary" type="button" onClick={() => void acceptQuote()} disabled={busy}>{busy ? <><i className="spinner" /> Starting…</> : <>Approve price & run <span>→</span></>}</button><button type="button" className="text-button" onClick={() => setJob(null)} disabled={busy}>Edit workflow</button><details className="small-disclosure"><summary>Quote details</summary><p>{String(job.pricing?.explanation ?? "Fixed quote based on task size and compatible offers.")}</p><p>Price basis: {job.quote.priceBasis === "local-fixture" ? "local development fixtures; not a live market quote" : job.quote.priceBasis === "compatible-offers" ? "compatible peer offers" : "local development estimate"}.</p><p>The final charge cannot exceed the quote. Customer ratings do not change payment.</p></details></div>
         </div>}
       </form>
 
