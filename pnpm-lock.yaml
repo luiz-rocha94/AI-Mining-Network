@@ -44,6 +44,12 @@ importers:
 
   apps/customer-web: {}
 
+  packages/protocol:
+    dependencies:
+      ethers:
+        specifier: ^6.14.0
+        version: 6.17.0
+
 packages:
 
   '@adraffy/ens-normalize@1.11.1':

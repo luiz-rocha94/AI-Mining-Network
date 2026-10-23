@@ -1,0 +1,84 @@
+{
+  "protocolVersion": "2",
+  "warning": "All key material in this fixture is public test data. Never use it for funds or production identity.",
+  "canonical": {
+    "value": {
+      "z": "mañana",
+      "a": [
+        3,
+        {
+          "b": "x\ny",
+          "a": "✓"
+        }
+      ],
+      "nullable": null
+    },
+    "utf8": "{\"a\":[3,{\"a\":\"✓\",\"b\":\"x\\ny\"}],\"nullable\":null,\"z\":\"mañana\"}",
+    "sha256": "sha256:abd3d37e50030b0ed85b9bc193cccf3601bffbf6bb139ece81c20d8e4d6a41a6"
+  },
+  "signedEnvelope": {
+    "chainId": 31337,
+    "testOnlyPrivateKey": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "typedDataHash": "0xc02e1070a39ab132e3fcc9109b05cf2c6e162598e60e7d6ab3fa518dfb75977d",
+    "payloadHash": "sha256:e12e67ebda1fa88897320ad9ee8a5da3240af50205a347b826706532d69242b9",
+    "message": {
+      "protocolVersion": "2",
+      "id": "00000000-0000-4000-8000-000000000001",
+      "createdAt": "2026-01-02T03:04:05.006000Z",
+      "expiresAt": "2026-01-02T03:14:05.006000Z",
+      "principalId": "did:amn:vector:alice",
+      "keyEpoch": 2,
+      "signer": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+      "nonce": "0x0101010101010101010101010101010101010101010101010101010101010101",
+      "payload": {
+        "kind": "SkillRating",
+        "ratingId": "rating-vector-1",
+        "taskId": "task-vector-1",
+        "skillHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stars": 5,
+        "comment": "excellent"
+      },
+      "payloadHash": "sha256:e12e67ebda1fa88897320ad9ee8a5da3240af50205a347b826706532d69242b9",
+      "signature": "0x1c9b120b67623566690955d21bd11426c29db0bccf30e46e2e951b5a09aabed1600610e948b12e5c27febf7b673c58ad91af9fc06e1eee74d276f0ac6be24bc01b"
+    }
+  },
+  "merkle": {
+    "standard": "OpenZeppelin StandardMerkleTree",
+    "types": [
+      "bytes32",
+      "bytes32",
+      "bytes32"
+    ],
+    "values": [
+      [
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "0x0000000000000000000000000000000000000000000000000000000000000002"
+      ],
+      [
+        "0x0000000000000000000000000000000000000000000000000000000000000003",
+        "0x0000000000000000000000000000000000000000000000000000000000000004",
+        "0x0000000000000000000000000000000000000000000000000000000000000005"
+      ],
+      [
+        "0x0000000000000000000000000000000000000000000000000000000000000006",
+        "0x0000000000000000000000000000000000000000000000000000000000000007",
+        "0x0000000000000000000000000000000000000000000000000000000000000008"
+      ]
+    ],
+    "root": "0x401f696a1b3468a5994a7a85811e537653fd611ec01b626d53dc09d7110035e0",
+    "proofForIndex1": [
+      "0x7801430fd24eee9fc286be0f11cc1b42302b73f2440b3babdfef0f9c515a67ed",
+      "0xdf1f00f6cff283acd96ced5ad308771fb5e3ce339d8fd57e058b835f85bacda2"
+    ]
+  },
+  "invalidCases": [
+    "altered-payload",
+    "wrong-eip712-chain-domain",
+    "expired-envelope",
+    "revoked-signer",
+    "unknown-protocol-version",
+    "replayed-message-id",
+    "replayed-signer-nonce"
+  ]
+}

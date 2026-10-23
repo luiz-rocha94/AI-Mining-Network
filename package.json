@@ -7,8 +7,10 @@
     "dev:web": "vite --host 127.0.0.1",
     "build:web": "vite build",
     "test:web": "node --test apps/customer-web/tests/*.test.mjs",
+    "typecheck:protocol": "tsc --noEmit --strict --target ES2022 --module NodeNext --moduleResolution NodeNext packages/protocol/v2/index.d.ts packages/protocol/v2/node-replay-store.d.ts",
+    "test:protocol": "node --test packages/protocol/tests/*.test.mjs && pnpm typecheck:protocol",
     "test:contract": "hardhat test --config contracts/hardhat.config.cjs",
-    "test:all": "pnpm test:web && pnpm test:contract && python -m pytest",
+    "test:all": "pnpm test:web && pnpm test:protocol && pnpm test:contract && python -m pytest",
     "demo": "python -m ai_mining_network.cli demo"
   },
   "devDependencies": {

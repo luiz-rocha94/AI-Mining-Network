@@ -84,7 +84,7 @@ def test_canonical_json_is_stable_and_rejects_floats():
 def test_generated_protocol_schema_matches_versioned_models():
     from ai_mining_network.schema_export import build_schema
 
-    checked_in = json.loads((ROOT / "packages" / "protocol" / "v1" / "messages.schema.json").read_text())
+    checked_in = json.loads((ROOT / "packages" / "protocol" / "v2" / "messages.schema.json").read_text())
     assert checked_in == build_schema()
     assert "ExecutionCommitment" in checked_in["$defs"]
     assert "VerificationReceipt" in checked_in["$defs"]

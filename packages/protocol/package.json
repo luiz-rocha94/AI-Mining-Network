@@ -1,0 +1,23 @@
+{
+  "name": "@ai-mining-network/protocol",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./v2/index.d.ts",
+      "import": "./v2/index.mjs"
+    },
+    "./v2": {
+      "types": "./v2/index.d.ts",
+      "import": "./v2/index.mjs"
+    },
+    "./node-replay-store": {
+      "types": "./v2/node-replay-store.d.ts",
+      "import": "./v2/node-replay-store.mjs"
+    }
+  },
+  "dependencies": {
+    "ethers": "^6.14.0"
+  }
+}

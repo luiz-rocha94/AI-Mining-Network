@@ -1,12 +1,13 @@
-"""Version 1 wire models. Numeric money and measurements use integer units."""
+"""Version 2 wire models. Numeric money and measurements use integer units."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Annotated, Literal, Union
+import re
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def utc_now() -> datetime:
@@ -15,16 +16,6 @@ def utc_now() -> datetime:
 
 class WireModel(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
-
-
-class Envelope(WireModel):
-    protocolVersion: Literal["1"] = "1"
-    id: str = Field(default_factory=lambda: str(uuid4()))
-    createdAt: datetime = Field(default_factory=utc_now)
-    signer: str
-    nonce: str
-    payloadHash: str
-    signature: str
 
 
 class Currency(WireModel):
@@ -253,34 +244,83 @@ class SkillRating(WireModel):
     comment: str = Field(default="", max_length=1000)
 
 
+class IdentityTransition(WireModel):
+    """Signed identity-directory update; policy and authorization live in identity_store."""
+
+    kind: Literal["IdentityTransition"] = "IdentityTransition"
+    identityId: str = Field(min_length=1, max_length=128, pattern=r"^[-a-zA-Z0-9:._]+$")
+    sequence: int = Field(ge=1)
+    action: Literal["ROTATE", "REVOKE", "RECOVER"]
+    previousSigner: str = Field(pattern=r"^0x[0-9a-fA-F]{40}$")
+    newSigner: str | None = Field(default=None, pattern=r"^0x[0-9a-fA-F]{40}$")
+
+
 Payload = Annotated[
-    Union[
-        SkillManifest,
-        SkillBenchmark,
-        MinerCapabilities,
-        ValidatorCapabilities,
-        MinerOffer,
-        CustomerTask,
-        FixedPriceQuote,
-        ExecutionContract,
-        ExecutionCommitment,
-        VerificationAssignment,
-        VerificationReceipt,
-        VerificationDecision,
-        PaymentSettlement,
-        SkillRating,
-    ],
+    SkillManifest
+    | SkillBenchmark
+    | MinerCapabilities
+    | ValidatorCapabilities
+    | MinerOffer
+    | CustomerTask
+    | FixedPriceQuote
+    | ExecutionContract
+    | ExecutionCommitment
+    | VerificationAssignment
+    | VerificationReceipt
+    | VerificationDecision
+    | PaymentSettlement
+    | SkillRating
+    | IdentityTransition,
     Field(discriminator="kind"),
 ]
 
 
 class SignedMessage(WireModel):
-    protocolVersion: Literal["1"] = "1"
+    protocolVersion: Literal["2"] = "2"
     id: str = Field(default_factory=lambda: str(uuid4()))
-    createdAt: datetime = Field(default_factory=utc_now)
-    signer: str
-    nonce: str
+    createdAt: datetime = Field(default_factory=utc_now, json_schema_extra={"pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$"})
+    expiresAt: datetime = Field(json_schema_extra={"pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$"})
+    principalId: str = Field(min_length=1, max_length=128, pattern=r"^[-a-zA-Z0-9:._]+$")
+    keyEpoch: int = Field(ge=0, le=9_007_199_254_740_991)
+    signer: str = Field(pattern=r"^0x[0-9a-fA-F]{40}$")
+    nonce: str = Field(pattern=r"^0x[0-9a-fA-F]{64}$")
     payload: Payload
     payloadHash: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     signature: str = Field(pattern=r"^0x[0-9a-fA-F]{130}$")
+
+    @field_validator("createdAt", "expiresAt", mode="before")
+    @classmethod
+    def wire_timestamps_are_canonical_utc(cls, value):
+        if isinstance(value, str) and not re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z",
+            value,
+        ):
+            raise ValueError("wire timestamps must be UTC RFC3339 ending in Z")
+        return value
+
+    @field_validator("createdAt", "expiresAt")
+    @classmethod
+    def protocol_timestamps_are_utc_milliseconds(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() != timedelta(0):
+            raise ValueError("protocol timestamps must be timezone-aware UTC")
+        if value.microsecond % 1000:
+            raise ValueError("protocol timestamps must have millisecond precision")
+        return value
+
+    @field_validator("nonce")
+    @classmethod
+    def nonce_is_bytes32(cls, value: str) -> str:
+        if len(value) != 66 or not value.startswith("0x"):
+            raise ValueError("nonce must be a 32-byte 0x-prefixed hex value")
+        try:
+            bytes.fromhex(value[2:])
+        except ValueError as exc:
+            raise ValueError("nonce must be a 32-byte 0x-prefixed hex value") from exc
+        return value.lower()
+
+    @model_validator(mode="after")
+    def expiry_follows_creation(self) -> SignedMessage:
+        if self.expiresAt <= self.createdAt:
+            raise ValueError("expiresAt must be later than createdAt")
+        return self
 

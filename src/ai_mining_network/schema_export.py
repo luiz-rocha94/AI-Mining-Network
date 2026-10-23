@@ -1,4 +1,4 @@
-"""Export versioned JSON schemas for all v1 protocol payloads."""
+"""Export the active v2 JSON schema for all protocol payloads."""
 
 from __future__ import annotations
 
@@ -11,17 +11,18 @@ from .models import (
     ExecutionContract,
     ExecutionUnit,
     FixedPriceQuote,
+    IdentityTransition,
     MinerCapabilities,
     MinerOffer,
     PaymentSettlement,
+    SignedMessage,
     SkillBenchmark,
     SkillManifest,
     SkillRating,
-    SignedMessage,
+    ValidatorCapabilities,
     VerificationAssignment,
     VerificationDecision,
     VerificationReceipt,
-    ValidatorCapabilities,
 )
 
 MODELS = [
@@ -40,6 +41,7 @@ MODELS = [
     VerificationDecision,
     PaymentSettlement,
     SkillRating,
+    IdentityTransition,
     SignedMessage,
 ]
 
@@ -51,15 +53,15 @@ def build_schema() -> dict:
         definitions[model.__name__] = schema
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://ai-mining-network.example/protocol/v1/messages.schema.json",
-        "title": "AI Mining Network protocol v1",
+        "$id": "https://ai-mining-network.example/protocol/v2/messages.schema.json",
+        "title": "AI Mining Network protocol v2",
         "description": "Signed envelopes wrap typed payloads; canonical JSON and EIP-712 rules are specified in docs/protocol.md.",
         "$defs": definitions,
     }
 
 
 def main() -> None:
-    target = Path("packages/protocol/v1/messages.schema.json")
+    target = Path("packages/protocol/v2/messages.schema.json")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(build_schema(), indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {target}")

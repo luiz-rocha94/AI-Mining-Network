@@ -112,25 +112,30 @@ change the offline test gate, which runs with Ollama unavailable.
 
 ## P1 — Interoperable protocol identity and message safety
 
+**Implementation and automated validation:** PASS on 2026-10-23. Maintainer
+review is pending; P2 has not started. See
+[`docs/reports/p1-protocol-interoperability.md`](docs/reports/p1-protocol-interoperability.md)
+for evidence, reproduction commands, compatibility decisions, and limitations.
+
 **Feature added:** independent implementations can exchange and verify AMN
 messages without relying on one runtime's serialization or identity shortcuts.
 
-- [ ] Finalize versioned schemas and adapter contracts for compute, transport,
+- [x] Finalize versioned schemas and adapter contracts for compute, transport,
   public metadata, artifact storage, randomness, attestations, and settlement.
-- [ ] Specify canonical serialization, domain-separated hashes, signer identity
+- [x] Specify canonical serialization, domain-separated hashes, signer identity
   binding, timestamps/expiry, replay windows, and protocol-version negotiation.
-- [ ] Publish Python/TypeScript golden vectors for canonical JSON, message
+- [x] Publish Python/TypeScript golden vectors for canonical JSON, message
   hashes, Merkle leaves/roots, EIP-712 signatures, and invalid/replayed messages.
-- [ ] Define key creation, rotation, revocation, recovery, and development-key
+- [x] Define key creation, rotation, revocation, recovery, and development-key
   rejection in production configuration.
 
 **Validate before P2:**
 
-- [ ] Python and TypeScript produce byte-identical canonical encodings and
+- [x] Python and TypeScript produce byte-identical canonical encodings and
   hashes for all shared vectors.
-- [ ] Both implementations reject altered payloads, wrong domains, expired
+- [x] Both implementations reject altered payloads, wrong domains, expired
   messages, revoked signers, unknown versions, and replayed identifiers.
-- [ ] Restarting a peer does not reset replay protection or change its identity
+- [x] Restarting a peer does not reset replay protection or change its identity
   binding unexpectedly.
 
 **Planned open-source contribution:** AMN's protocol schemas define how Agent
