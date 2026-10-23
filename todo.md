@@ -16,7 +16,7 @@ application is a local MVP, not a production decentralized network.
 | [Ollama](https://ollama.com/) | Integrated locally | Provide local model discovery and structured inference so customers and miners can use installed models without requiring a proprietary cloud inference backend. | P2 — Skills and tool execution; validated local worker adapter |
 | [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) | Optional adapter implemented and tested | Expose approved skill tools through a standard agent-tool protocol, with AMN enforcing schemas, permissions, timeouts, and audit records. | P2 — Skills and tool execution |
 | [libp2p](https://libp2p.io/) | Peer transport package implemented and tested; not yet wired into the customer/miner task runtime | Let peers discover each other and exchange signed public metadata plus authorized private task messages without a required central coordinator. | P3 — Peer discovery and task messaging |
-| [Helia / IPFS](https://github.com/ipfs/helia) | Not integrated | Store and retrieve public skills and benchmark artifacts by content hash, plus explicitly authorized encrypted task artifacts. | P4 — Content-addressed artifact storage |
+| [Helia / IPFS](https://github.com/ipfs/helia) | Local persistent artifact adapter implemented and tested; not wired into task runtime | Store/retrieve public skills and benchmark artifacts by content hash, plus explicitly authorized encrypted task artifacts. | P4 — Content-addressed artifact storage (local gate passed) |
 | [OrbitDB](https://github.com/orbitdb/orbitdb) | Not integrated | Replicate public skill metadata, benchmark submissions, ratings, and selected audit records across peers with deterministic conflict rules. | P5 — Replicated public registry (after P3–P4) |
 | Benchmark and quote pipeline (AMN feature; no new dependency) | Partial/local | Collect reproducible benchmark evidence and calculate fixed quotes using cost components, policy, and compatible offers. | P6 — Benchmark evidence and fixed quotes |
 | [Golem Yagna](https://docs.golem.network/) | Not integrated | Connect miners to decentralized compute offers and task execution; feed compatible live offers into fixed quotes and execution assignments. | P7 — Decentralized compute backend |
@@ -202,8 +202,8 @@ required before production use.
 
 ## P3 — Coordinator-free peer discovery and task messaging
 
-**Implementation and automated validation:** PASS on 2026-10-23. Maintainer
-review/acceptance is pending; P4 has not started. See
+**Implementation and automated validation:** PASS on 2026-10-23. The requested
+P3 revalidation passed before P4 began. See
 [`docs/reports/p3-peer-networking.md`](docs/reports/p3-peer-networking.md) for
 the implementation summary, commands, test evidence, limits, and assumptions.
 
@@ -234,9 +234,9 @@ the customer/miner task runtime.
 - [x] Unauthorized sender/principal bindings are rejected; document remaining
   Sybil limits.
 
-**Maintainer validation gate:** pending. Review the reproducible demo and
-[`docs/architecture/peer-networking.md`](docs/architecture/peer-networking.md),
-then validate P3 before starting P4.
+**Maintainer validation gate:** PASS on 2026-10-23 after the requested
+`pnpm test:networking` run (10 passed) and `pnpm demo:networking` three-peer
+convergence run. P4 may proceed.
 
 **Planned open-source contribution:** libp2p provides peer transport and
 discovery. It does not provide AMN's application identity policy, Sybil
@@ -244,25 +244,46 @@ resistance, task correctness, authorization, or payment finality.
 
 ## P4 — Helia/IPFS content-addressed artifact storage
 
-**Feature added:** independently operated nodes can publish and retrieve
-versioned public skill packages and approved artifacts by content address.
+**Implementation and local automated validation:** PASS on 2026-10-23. See
+[`docs/reports/p4-artifact-storage.md`](docs/reports/p4-artifact-storage.md)
+for commands, results, direct dependency versions/licenses, and production
+boundaries. This passes the P4 local gate; public DHT deployment and task-runtime
+wiring remain production follow-up work.
 
-- [ ] Implement persistent Helia/IPFS `ArtifactStore` with explicit pinning,
+**Feature added:** independently operated Helia nodes can persist and exchange
+public or explicitly encrypted artifacts by content address over connected
+libp2p peers; local pinning and retention are visible and bounded.
+
+- [x] Implement persistent Helia/IPFS `ArtifactStore` with explicit pinning,
   retention, and availability status. Verify bytes against signed expected
-  hashes/CIDs before parsing or execution.
-- [ ] Publish skill packages, public benchmark artifacts, and explicitly
-  approved public receipts; keep customer inputs and outputs local by default.
-- [ ] For authorized private artifact exchange, encrypt before storage, grant
+  hashes/CIDs before returning bytes. Application callers still need to validate
+  signatures before passing expected values.
+- [x] Implement public writes for skill packages, benchmark artifacts, and
+  explicitly approved public receipts; keep customer inputs and outputs local
+  by default. Skill-registry/task-runtime integration remains unconnected.
+- [x] For authorized private artifact exchange, encrypt before storage, grant
   decryption capability only to assigned parties, and define expiry/revocation.
+  Revocation state persists on the local issuing store but is not distributed.
 
 **Validate before P5:**
 
-- [ ] Two independent peers retrieve the same pinned artifact after restart;
+- [x] Two independent peers retrieve the same pinned artifact after restart;
   tests cover missing blocks, altered bytes, unavailable peers, and retention.
-- [ ] Privacy tests verify that public records and logs contain no private
-  prompt, source document, ground truth, or plaintext result.
-- [ ] Document that content addressing gives integrity, not confidentiality,
+- [x] Privacy tests verify that encrypted block storage and returned grant
+  metadata contain no private prompt, source-document, ground-truth, or
+  plaintext-result markers.
+- [x] Document that content addressing gives integrity, not confidentiality,
   deletion, guaranteed persistence, or access control.
+- [x] Run the P3 regression tests and demo plus the P4 six-test storage suite
+  and two-peer public/private artifact demo; run the complete `pnpm test:all`
+  regression. Record results in the P4 report.
+
+**Maintainer validation gate:** PASS on 2026-10-23. The local Helia adapter
+passed all six storage tests and the two-peer demo; the P3 regression remained
+green. The full suite passed (4 web, 6 protocol, 10 networking, 6 storage, 4
+contract, and 69 Python tests; protocol typecheck also passed). No public
+DHT/bootstrap service was configured, so the demo reported local pinning rather
+than global announcement. P5 may proceed only when authorized separately.
 
 **Planned open-source contribution:** Helia/IPFS supplies content-addressed
 storage and retrieval. It does not provide confidentiality, guaranteed

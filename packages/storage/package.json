@@ -1,0 +1,34 @@
+{
+  "name": "@ai-mining-network/storage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "demo": "node demo.mjs"
+  },
+  "dependencies": {
+    "@helia/bitswap": "^4.0.20",
+    "@helia/libp2p": "^2.1.5",
+    "@helia/unixfs": "^8.0.9",
+    "@libp2p/bootstrap": "^12.0.24",
+    "@libp2p/identify": "^4.1.18",
+    "@libp2p/kad-dht": "^16.4.5",
+    "@libp2p/noise": "^17.0.7",
+    "@libp2p/ping": "^3.1.17",
+    "@libp2p/tcp": "^11.0.32",
+    "@libp2p/yamux": "^8.0.7",
+    "@multiformats/multiaddr": "^13.0.3",
+    "blockstore-fs": "^4.0.1",
+    "datastore-core": "^12.0.1",
+    "datastore-level": "^13.0.1",
+    "helia": "^7.1.16",
+    "multiformats": "^14.0.0"
+  }
+}

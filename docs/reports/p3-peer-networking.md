@@ -1,7 +1,8 @@
 # P3 peer networking implementation report
 
 **Status:** implementation and focused automated validation passed on
-2026-10-23. Maintainer validation remains pending. P4 has not started.
+2026-10-23. The requested P3 revalidation passed (`pnpm test:networking`, 10
+tests; `pnpm demo:networking`, three-peer convergence) before P4 began.
 
 ## Delivered
 
@@ -96,4 +97,5 @@ report generator. Review unknown/custom license metadata before redistribution.
   bounded resource/rate handling.
 - [x] Focused TCP/Noise and multi-peer test coverage; local convergence demo.
 - [x] Architecture, integration boundary, and security assumptions documented.
-- [ ] Maintainer reviews this report and the demo, then accepts P3 before P4.
+- [x] P3 revalidated by request: networking tests and three-peer demo passed;
+  P4 was then authorized to proceed.

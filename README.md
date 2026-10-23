@@ -2,7 +2,7 @@
 
 Open-source reference MVP for fixed-price AI jobs with partitioned output commitments, post-commit sample verification, signed evidence, and idempotent settlement.
 
-> **Status: local development MVP; not a production decentralized network.** The local customer workflow executes on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. The libp2p peer transport package is implemented and tested with TCP/Noise loopback plus an in-process test mesh, but it is not yet wired into the customer/miner task runtime. Golem, Helia/IPFS, OrbitDB, verified drand randomness, and EAS remain unintegrated. No real funds or proprietary token are used.
+> **Status: local development MVP; not a production decentralized network.** The local customer workflow executes on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. The libp2p peer transport package and Helia/IPFS artifact-storage adapter are implemented and tested locally, but neither is wired into the customer/miner task runtime. Helia has no configured public DHT/bootstrap network here. Golem, OrbitDB, verified drand randomness, and EAS remain unintegrated. No real funds or proprietary token are used.
 
 ## What is implemented
 
@@ -67,9 +67,11 @@ pnpm install
 ```
 
 This Python and pnpm setup is sufficient for the offline test suite. The pnpm
-workspace explicitly permits install scripts only for `esbuild` (which checks
-its platform binary hash) and `keccak` (which has a JavaScript fallback); these
-are required by the web build and local EVM test dependencies.
+workspace explicitly permits install scripts for `esbuild` (which checks its
+platform binary hash), `keccak` (which has a JavaScript fallback), and
+`classic-level` (the native persistent LevelDB storage used by Helia). These
+are required by the web build, local EVM test dependencies, and P4 artifact
+store.
 
 To exercise P3 peer messaging locally, run `pnpm test:networking` for the
 multi-peer, TCP/Noise loopback, replay, and reconnect tests. The
@@ -77,6 +79,14 @@ multi-peer, TCP/Noise loopback, replay, and reconnect tests. The
 public-event convergence using libp2p's test-only memory transport. See
 [`packages/networking/README.md`](packages/networking/README.md) before using
 the adapter outside a local test.
+
+To exercise P4 content-addressed storage, run `pnpm test:storage` and
+`pnpm demo:storage`. The demo connects two independent local Helia peers over
+TCP, retrieves a public skill artifact and an encrypted private artifact for
+its assigned recipient, and reports local pin/announcement status. It does not
+use an HTTP gateway, cloud pinning service, DHT bootstrap, or the customer task
+workflow. See [`docs/architecture/artifact-storage.md`](docs/architecture/artifact-storage.md)
+for limits and trust assumptions.
 
 To run the local inference demo, install Ollama separately and pull a model
 supported by the selected skill:
@@ -182,7 +192,7 @@ Outputs are in [`docs/reports`](docs/reports/): fixture protocol timings, proof/
 ## Local data and trust boundaries
 
 - `.amn/jobs/<task-id>/private-input/` holds customer uploads and (for the invoice demo) synthetic PDFs and ground truth. It is excluded from the artifact API. Local files are not encrypted; use OS disk protection.
-- Public skill content and benchmark receipts are separate from private job inputs. By default, task inputs are not sent to IPFS, OrbitDB, or a remote model. Remote Ollama is an explicit HTTPS opt-in through `AMN_ALLOW_REMOTE_OLLAMA=1`.
+- Public skill content and benchmark receipts are separate from private job inputs. By default, task inputs are not sent to IPFS, OrbitDB, or a remote model; the standalone Helia adapter is not called by the customer workflow. Its private-artifact path encrypts before storage, but grant/key management and task integration remain follow-up work. Remote Ollama is an explicit HTTPS opt-in through `AMN_ALLOW_REMOTE_OLLAMA=1`.
 - Local EIP-712 keys under `.amn/identities/` and job signing keys are development keys. Do not fund them or reuse them in production.
 - Ollama requests are constrained to localhost by default. Setting `AMN_ALLOW_REMOTE_OLLAMA=1` with an HTTPS `OLLAMA_HOST` explicitly permits remote data sharing. The configured Ollama catalog may then expose remote-hosted Ollama models.
 - The local beacon is generated in-process and cannot establish independent unpredictable randomness. Validator accounts are separate keys but run in the same host process; this is not a Sybil-resistant validator set.
@@ -198,12 +208,13 @@ Outputs are in [`docs/reports`](docs/reports/): fixture protocol timings, proof/
 | OpenZeppelin Merkle Tree | Python implementation cross-checked against a Node golden vector |
 | OpenZeppelin Contracts / EVM | Local escrow contract and Hardhat tests; not connected to Python settlement |
 | Golem Yagna | Not connected; support constraints and adapter requirements documented |
-| Helia/IPFS + OrbitDB | Not connected; local public registry adapter is SQLite |
+| Helia/IPFS | Persistent local peer storage, public pinning, encrypted private artifacts, integrity checks, and retention are tested; not connected to task runtime, and no public DHT is configured |
+| OrbitDB | Not connected; local public registry adapter is SQLite |
 | libp2p | Standalone peer-transport package with TCP/Noise, signed public gossip, encrypted direct RPC, and local event sync; not yet wired into the workflow runtime |
 | drand | Not connected; challenge adapter is simulated and says `verified: false` |
 | EAS | Not connected; receipt files use local EIP-712 signatures |
 
-Do not treat this repository as production-ready. The local worker has monitored CPU/RSS/deadline limits, a scratch working directory, and a sanitized environment; it is not an OS sandbox. It runs under the miner's user permissions, does not enforce filesystem/kernel network isolation, and cannot meter GPU/VRAM or the separate Ollama daemon. Before real deployment, replace local adapters, harden execution in a container/VM, verify random-beacon proofs and validator eligibility, add encrypted private-artifact transport, distributed availability/recovery, production signer/key management, and independent security review. See the [production checklist](docs/production-readiness.md).
+Do not treat this repository as production-ready. The local worker has monitored CPU/RSS/deadline limits, a scratch working directory, and a sanitized environment; it is not an OS sandbox. It runs under the miner's user permissions, does not enforce filesystem/kernel network isolation, and cannot meter GPU/VRAM or the separate Ollama daemon. Before real deployment, replace local adapters, harden execution in a container/VM, wire peer messaging and encrypted artifact storage into the workflow, validate public bootstrap/DHT and distributed availability/recovery, verify random-beacon proofs and validator eligibility, add production signer/key management, and complete independent security review. See the [production checklist](docs/production-readiness.md).
 
 ## License
 

@@ -4,6 +4,8 @@ packages:
   - contracts
 allowBuilds:
   # esbuild installs its platform binary and verifies the package hash.
+  # classic-level provides the persistent LevelDB datastore used by Helia.
+  classic-level: true
   esbuild: true
   # keccak's node-gyp build has a JavaScript fallback when native build is unavailable.
   keccak: true

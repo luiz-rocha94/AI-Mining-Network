@@ -26,7 +26,7 @@ flowchart TB
   Contract[OpenZeppelin EVM escrow] -. separately tested .-> LocalChain[Hardhat ephemeral chain]
 ```
 
-Only the Ollama HTTP path and local EVM contract tests are actual external-project integrations. The Python demo uses `SimulatedBeacon`, local synthetic offers, and a local settlement ledger. The EVM escrow is not called by the Python demo.
+The Ollama HTTP path and the P3/P4 libp2p and Helia adapters are actual external-project integrations, but the latter two are standalone packages and are not in the task runtime composition. Local EVM contract tests also use OpenZeppelin Contracts. The Python demo uses `SimulatedBeacon`, local synthetic offers, and a local settlement ledger. The EVM escrow is not called by the Python demo.
 
 ## Decentralized deployment target
 
@@ -49,7 +49,7 @@ flowchart LR
   Private[Encrypted private task artifacts] -. authorized peers only .-> Transport[Authenticated encrypted transport]
 ```
 
-This target is a design, not code that currently runs. Helia/OrbitDB content must not contain private inputs unless a customer explicitly authorizes it. OrbitDB's eventual consistency requires deterministic conflict rules for public metadata and does not make private data confidential.
+This target is a design, not an end-to-end deployment. P3 provides a separately tested libp2p peer transport; P4 provides a separately tested Helia artifact store for public content and encrypted private bytes. Neither adapter is yet wired into the customer/miner task path. Helia local pins do not guarantee global persistence. OrbitDB is not integrated; its eventual consistency will require deterministic conflict rules for public metadata and will not make private data confidential.
 
 ## Local modules and seams
 
@@ -66,6 +66,8 @@ This target is a design, not code that currently runs. Helia/OrbitDB content mus
 - `verification.py`: synthetic source-line evidence, independent extraction, proof check, explicit consensus outcome.
 - `settlement.py`: objective payout policy, Python SQLite idempotency key.
 - `TaskEscrow.sol`: OpenZeppelin SafeERC20/ReentrancyGuard/EIP712/ECDSA escrow primitive. It does not verify drand proofs or validator selection.
+- `packages/networking`: standalone libp2p TCP/Noise peer transport, signed public event sync, and encrypted authorized direct RPC; it has not been wired into API/miner/validator orchestration.
+- `packages/storage`: standalone persistent Helia/UnixFS/Bitswap artifact adapter. Public writes are explicit and kind-limited; private artifacts use authenticated encryption and recipient key envelopes. See [artifact storage](artifact-storage.md); the customer task flow does not yet call this package.
 
 The local APIs are deliberately narrow and the network/compute/storage/payment adapters are replaceable. A production adapter must pass the exact same protocol and adversarial test suite before replacing a local implementation.
 
