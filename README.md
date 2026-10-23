@@ -7,6 +7,8 @@ Open-source reference MVP for fixed-price AI jobs with partitioned output commit
 ## What is implemented
 
 - A content-addressed Agent Skill package with a signed author manifest and local publish/discover CLI.
+- Strict SKILL.md/manifest parsing, inline input/output JSON Schema validation, package path/size/reference checks, and a V2 digest binding the manifest and package assets.
+- A declarative skill runtime with a killable worker process, process-tree CPU/RSS/deadline monitoring, bounded inputs/outputs, structured errors, cancellation, scratch workspace, sanitized environment, and versioned `ollama.chat@1.0.0`. Downloaded package scripts are never run.
 - A signed 20-sample invoice benchmark receipt for the invoice skill/model digest. General document-task quotes use a disclosed local text-size/model-size estimate; they do not claim an executed skill benchmark.
 - Fixed integer-atomic quotes selected from compatible local offer records. The accepted quote is the maximum charge.
 - A workflow builder with a fixed Input node for prompt/files/model, a node library and skill-text inspector, connectable skill nodes, and a fixed Final output node. Drag supported files onto Input, add skills from the library, connect each skill from Input or an earlier node, and review the fixed summed quote before execution.
@@ -25,7 +27,7 @@ The demo verifies synthetic labeled invoice PDFs using both independent extracti
 flowchart LR
   A[Customer UI / CLI] --> Q[Fixed quote]
   Q -->|customer accepts| F[Local simulated escrow]
-  F --> M[Local miner worker]
+  F --> M[Isolated declarative worker process]
   M --> O[Selected Ollama model + connected skill workflow]
   O --> C[JSON + XLSX + per-document leaves]
   C --> R[Signed Merkle commitment]
@@ -76,6 +78,13 @@ supported by the selected skill:
 ollama pull qwen3:4b-instruct
 ```
 
+To run one non-sensitive prompt through the isolated skill worker and check the
+installed model's structured response:
+
+```powershell
+python scripts/smoke_ollama_worker.py --model qwen3:4b-instruct
+```
+
 In terminal 1, start the loopback API:
 
 ```powershell
@@ -92,7 +101,16 @@ Open `http://127.0.0.1:5173`. The API binds only to loopback and rejects non-loo
 
 Saved workflow templates are exposed through `GET /api/workflows`, `GET /api/workflows/{workflowId}`, and `POST /api/workflows`. The local registry validates the graph, stores the skill version/hash references with it, and returns a canonical SHA-256 content hash that binds the workflow name, graph, and skill references. Updates use the server-issued workflow UUID. It is a single-node local development adapter; decentralized registry replication is a separate integration step.
 
-The local `/api/models` route discovers the full model list from Ollama. To point the app at a non-loopback Ollama endpoint, set `OLLAMA_HOST` and explicitly set `AMN_ALLOW_REMOTE_OLLAMA=1`; this sends task text to that endpoint, so enable it only when that data sharing is authorized. The local quote is an estimate in valueless `TESTUSD`, calculated from prompt/document text size, model-size throughput heuristic, and verification work. It is not a live miner offer or a measured benchmark guarantee. The currently implemented `document-assistant` and `invoice-extractor` packages are declarative `SKILL.md` instructions; the runtime does not execute downloaded package code.
+The local `/api/models` route discovers the full model list from Ollama. To point the app at a non-loopback Ollama endpoint, set `OLLAMA_HOST` to an HTTPS origin and explicitly set `AMN_ALLOW_REMOTE_OLLAMA=1`; this sends task text to that endpoint, so enable it only when that data sharing is authorized. Skills that require per-task GPU/VRAM or arbitrary network access are rejected by the local Ollama worker. The local quote is an estimate in valueless `TESTUSD`, calculated from prompt/document text size, model-size throughput heuristic, and verification work. It is not a live miner offer or a measured benchmark guarantee. The currently implemented `document-assistant` and `invoice-extractor` packages are declarative `SKILL.md` instructions; the runtime does not execute downloaded package code.
+
+After editing a skill package, refresh its manifest hash before publishing it:
+
+```powershell
+python scripts/update_skill_hash.py skills/document-assistant
+amn publish-skill skills/document-assistant
+```
+
+The digest binds the canonical manifest and every package file except the root `manifest.json` self-reference. AMN currently accepts the protocol's safe-integer canonical JSON subset; use integer minor units or exact decimal strings for fractional amounts.
 
 The CLI can run the same customer flow without the UI:
 
@@ -118,12 +136,14 @@ amn fraud-report --units 100 --corrupt 5 --samples 5 10 20 30 50
 
 `capabilities` writes a signed, stable local identity advertisement under `.amn/capabilities`. It does not join or announce to a P2P network. `amn-validator audit` verifies the signed execution commitment, receipt signature and validator identity binding, evidence hash, and each receipt's Merkle inclusion proof.
 
-Optional MCP tool server (`stdio`, local Ollama only):
+Optional MCP v2 tool server (`stdio`, local Ollama by default; Python 3.11+):
 
 ```powershell
 python -m pip install -e ".[mcp]"
 amn-mcp
 ```
+
+It exposes `amn_skill_execute_v1` for published declarative skills and keeps `extract_invoice_v1` as a compatibility tool. The server supports `AMN_ROOT`, `AMN_OLLAMA_MODEL`, and `OLLAMA_HOST`; remote HTTPS inference also requires `AMN_ALLOW_REMOTE_OLLAMA=1`.
 
 ## Tests and reproducible reports
 
@@ -155,9 +175,9 @@ Outputs are in [`docs/reports`](docs/reports/): fixture protocol timings, proof/
 ## Local data and trust boundaries
 
 - `.amn/jobs/<task-id>/private-input/` holds customer uploads and (for the invoice demo) synthetic PDFs and ground truth. It is excluded from the artifact API. Local files are not encrypted; use OS disk protection.
-- Public skill content and benchmark receipts are separate from private job inputs. By default, task inputs are not sent to IPFS, OrbitDB, or a remote model. Remote Ollama is an explicit opt-in through `AMN_ALLOW_REMOTE_OLLAMA=1`.
+- Public skill content and benchmark receipts are separate from private job inputs. By default, task inputs are not sent to IPFS, OrbitDB, or a remote model. Remote Ollama is an explicit HTTPS opt-in through `AMN_ALLOW_REMOTE_OLLAMA=1`.
 - Local EIP-712 keys under `.amn/identities/` and job signing keys are development keys. Do not fund them or reuse them in production.
-- Ollama requests are constrained to localhost by default. Setting `AMN_ALLOW_REMOTE_OLLAMA=1` explicitly permits remote data sharing. The configured Ollama catalog may then expose remote-hosted Ollama models.
+- Ollama requests are constrained to localhost by default. Setting `AMN_ALLOW_REMOTE_OLLAMA=1` with an HTTPS `OLLAMA_HOST` explicitly permits remote data sharing. The configured Ollama catalog may then expose remote-hosted Ollama models.
 - The local beacon is generated in-process and cannot establish independent unpredictable randomness. Validator accounts are separate keys but run in the same host process; this is not a Sybil-resistant validator set.
 - Settlement ratings are payment-neutral. A low rating after valid execution changes only skill-quality reputation.
 
@@ -166,8 +186,8 @@ Outputs are in [`docs/reports`](docs/reports/): fixture protocol timings, proof/
 | Component | Current status |
 |---|---|
 | Ollama | Real configured `/api/tags` discovery and `/api/chat` schema-constrained tasks; loopback is the default |
-| Agent Skills | `SKILL.md`/manifest package format and content-addressed local registry |
-| MCP Python SDK | Optional MCP v2 tool server code; install with `[mcp]` |
+| Agent Skills | Safe frontmatter/manifest validation, manifest-bound package digest, and content-addressed local registry |
+| MCP Python SDK | Tested MCP v2 skill server; install with `[mcp]` on Python 3.11+ |
 | OpenZeppelin Merkle Tree | Python implementation cross-checked against a Node golden vector |
 | OpenZeppelin Contracts / EVM | Local escrow contract and Hardhat tests; not connected to Python settlement |
 | Golem Yagna | Not connected; support constraints and adapter requirements documented |
@@ -176,7 +196,7 @@ Outputs are in [`docs/reports`](docs/reports/): fixture protocol timings, proof/
 | drand | Not connected; challenge adapter is simulated and says `verified: false` |
 | EAS | Not connected; receipt files use local EIP-712 signatures |
 
-Do not treat this repository as production-ready. Before real deployment, replace the local adapters, verify random-beacon proofs and validator eligibility, add an isolated runtime, encrypted private-artifact transport, distributed availability/recovery, production signer/key management, and independent security review. See the [production checklist](docs/production-readiness.md).
+Do not treat this repository as production-ready. The local worker has monitored CPU/RSS/deadline limits, a scratch working directory, and a sanitized environment; it is not an OS sandbox. It runs under the miner's user permissions, does not enforce filesystem/kernel network isolation, and cannot meter GPU/VRAM or the separate Ollama daemon. Before real deployment, replace local adapters, harden execution in a container/VM, verify random-beacon proofs and validator eligibility, add encrypted private-artifact transport, distributed availability/recovery, production signer/key management, and independent security review. See the [production checklist](docs/production-readiness.md).
 
 ## License
 

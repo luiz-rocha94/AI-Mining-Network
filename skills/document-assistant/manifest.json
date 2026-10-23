@@ -1,26 +1,48 @@
 {
   "name": "document-assistant",
   "version": "1.0.0",
-  "contentHash": "",
+  "contentHash": "sha256:da4dd174f939c0576916b780a332811b789af9816f86520018067bd664d07588",
   "skillFile": "SKILL.md",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "customerPrompt": { "type": "string", "description": "The customer's instruction describing the requested document task." },
-      "documentName": { "type": "string", "description": "Name of the document being processed." },
-      "documentText": { "type": "string", "description": "Text extracted from the document and provided to the skill." }
+      "customerPrompt": {
+        "type": "string",
+        "description": "The customer's instruction describing the requested document task."
+      },
+      "documentName": {
+        "type": "string",
+        "description": "Name of the document being processed."
+      },
+      "documentText": {
+        "type": "string",
+        "description": "Text extracted from the document and provided to the skill."
+      }
     },
-    "required": ["customerPrompt", "documentName", "documentText"],
+    "required": [
+      "customerPrompt",
+      "documentName",
+      "documentText"
+    ],
     "additionalProperties": false
   },
   "outputSchema": {
     "type": "object",
-    "properties": { "response": { "type": "string", "description": "The skill's response to the customer's request." } },
-    "required": ["response"],
+    "properties": {
+      "response": {
+        "type": "string",
+        "description": "The skill's response to the customer's request."
+      }
+    },
+    "required": [
+      "response"
+    ],
     "additionalProperties": false
   },
   "requiredModels": [],
-  "allowedTools": ["ollama.chat"],
+  "allowedTools": [
+    "ollama.chat@1.0.0"
+  ],
   "verificationStrategy": "per-document",
   "requirements": {
     "cpuCores": 1,

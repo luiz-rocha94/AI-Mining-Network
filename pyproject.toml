@@ -16,11 +16,14 @@ dependencies = [
   "eth-account>=0.13,<1",
   "eth-abi>=5,<6",
   "eth-utils>=5,<6",
+  "jsonschema>=4.23,<5",
+  "PyYAML>=6.0.2,<7",
+  "psutil>=5.9,<8",
+  "regex>=2024.5.15,<2027",
 ]
 
 [project.optional-dependencies]
-mcp = ["mcp>=2,<3"]
-metrics = ["psutil>=5.9,<8"]
+mcp = ["mcp>=2,<3; python_version >= '3.11'"]
 dev = ["pytest>=8,<10", "ruff>=0.9"]
 
 [project.scripts]

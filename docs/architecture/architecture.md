@@ -13,7 +13,7 @@ flowchart TB
   Benchmark --> Pricing[Fixed integer quote]
   API --> Pricing
   Pricing --> Accept[Explicit customer acceptance]
-  Accept --> Worker[Local miner worker]
+  Accept --> Worker[Local isolated worker process]
   Worker --> Ollama[Ollama localhost]
   Worker --> Files[Private job directory]
   Worker --> Commit[OZ-compatible Merkle root + EIP-712 signature]
@@ -55,7 +55,8 @@ This target is a design, not code that currently runs. Helia/OrbitDB content mus
 
 - `models.py`: Pydantic v2 wire payloads wrapped in signed protocol envelopes.
 - `canonical.py` / `signing.py`: integer-safe canonical JSON hashes and EIP-712 message signatures.
-- `registry.py`: content hash of sorted package file paths and bytes; local SQLite search index.
+- `skill_packages.py` / `registry.py`: safe YAML/JSON parsing, Agent Skills metadata validation, JSON Schema validation, package path/size/reference checks, manifest-bound V2 digest, and local SQLite search index.
+- `worker.py` / `skill_worker.py` / `tool_runtime.py`: killable declarative worker process, process-tree CPU/RSS/deadline monitoring, scratch workspace and sanitized environment, structured output validation, and the versioned `ollama.chat@1.0.0` tool contract. Downloaded skill scripts are never invoked.
 - The customer workflow graph fixes Input and Final output nodes, connects one to ten unique skill nodes in an acyclic graph, and commits its topology plus skill package hashes through `CustomerTask.workflowHash`. The current editor supports one upstream connection per skill node and joins terminal branches at Output.
 - `benchmark_service.py`: measured per-document runs; benchmark receipts say `selfReportedMetrics: true`.
 - `pricing.py`: selects the cheapest unexpired currency-compatible executor and validator offers; hard cap checked before quote creation.
@@ -70,7 +71,7 @@ The local APIs are deliberately narrow and the network/compute/storage/payment a
 
 ## Component lifecycle
 
-1. The author publishes a `SKILL.md` + manifest package. Its deterministic SHA-256 package digest excludes only `manifest.json` to avoid self-reference.
+1. The author publishes a `SKILL.md` + manifest package. Its V2 SHA-256 package digest includes the canonical manifest without `contentHash` and every package file except the self-referencing root manifest.
 2. The customer describes a task and receives an expiring quote from available compatible offers.
 3. The customer explicitly accepts. The execution contract pins quote, executor, deadline, challenge round, and idempotency key.
 4. The miner checks each input hash, validates the signed workflow graph, runs connected skill nodes in topological order, joins terminal node values at Final output, writes per-document records, then signs a Merkle root and artifact-manifest hash.
@@ -81,4 +82,6 @@ The local APIs are deliberately narrow and the network/compute/storage/payment a
 
 ## Resource boundaries
 
-The test API binds only on loopback and rejects DNS-rebinding-style non-loopback hosts/origins. Each JSON API body is limited to 1 MiB; MCP invoice text is limited to 100 KB; Ollama requests have a timeout and a localhost-only default. The local MVP executes no downloaded skill code: a skill is declarative instructions plus manifest, and the repository's fixed runtime owns parsing and extraction. A production miner must still isolate parsers, model processes, downloaded tools, filesystem access, GPU access, and outbound networking before accepting third-party skills.
+The test API binds only on loopback and rejects DNS-rebinding-style non-loopback hosts/origins. Each JSON API body is limited to 1 MiB; MCP arguments are limited to 1 MiB; skill packages are limited to 10 MiB, 1,024 files, and 500 lines of `SKILL.md`; Ollama requests have deadlines and use localhost by default. The local MVP supports declarative skills only: uploaded scripts are treated as inert package data. A separate Python worker receives bounded JSON over stdin, runs with a scratch working directory and sanitized environment, and is killed on its deadline or monitored CPU/RSS limit. Its output and tool input/output sizes are bounded. Explicit per-task GPU/VRAM or arbitrary network requirements are rejected by the local Ollama adapter.
+
+This process boundary is not an OS sandbox. The worker runs as the miner's OS account and can access files that account can access; `cwd`, `HOME`, and `TMPDIR` do not enforce a filesystem jail. Its network restriction is an application-level allow-list, not a kernel firewall. Ollama inference occurs in a separate daemon, outside worker CPU/RSS accounting and deadline termination, and its VRAM cannot be reserved or metered per task. These limitations are tested and remain production blockers; do not enable downloaded script execution.

@@ -11,8 +11,8 @@ The MVP is **not production-ready**. Check each item with code, independent test
 
 ## Compute and execution
 
-- [ ] Build supported, reproducible task images or another isolated runtime; do not run untrusted skill scripts on the host.
-- [ ] Add process/container/VM isolation, filesystem quotas, CPU/RAM/VRAM limits, syscall/resource controls, network egress policy, secret isolation, killable timeouts, and cleanup tests.
+- [ ] Build supported, reproducible task images or another hardened isolated runtime; the local worker now accepts declarative skills only and does not run package scripts, but it runs as the miner's OS user.
+- [ ] Add kernel/container/VM filesystem and network isolation, CPU/RAM/VRAM limits, syscall/resource controls, secret isolation, killable deadlines, Ollama/model-process accounting, and independent cleanup tests. Current worker CPU/RSS checks are monitored process-tree limits, not hard quotas; GPU/VRAM and the separate Ollama daemon are outside the limit.
 - [ ] Integrate a compatible decentralized marketplace backend. For Golem, validate Linux x86-64 requestor/provider constraints, KVM and image/runtime requirements, GPU flags/provider availability, GLM accounting, and end-to-end task return behavior. Do not assume this Windows configuration is supported.
 - [ ] Add authenticated encrypted artifact transfer and access expiry. Never publish customer PDFs, ground truth, prompts, or outputs publicly without explicit authorization.
 - [ ] Add OCR only with a declared model/version, resource requirements, and verification plan. The current skill handles text PDFs only.
@@ -37,4 +37,4 @@ The MVP is **not production-ready**. Check each item with code, independent test
 
 ## Current checklist result
 
-The local software tests exercise quote ceilings, commitment-before-sample ordering, EIP-712 signatures, Merkle proofs, validator shortfalls/conflicts, output tampering, timeout refunds, rating-independent settlement, idempotency, loopback API origin checks, and test-chain escrow. They do not satisfy the P2P, distributed storage, verified randomness, sandbox, production signer, or real market integration items above.
+The local software tests now also exercise Agent Skills package validation and hashing, declarative worker boundaries, process-tree deadline/CPU/RSS termination, MCP input validation and cancellation, and Ollama tool allow-listing. They do not satisfy the P2P, distributed storage, verified randomness, hardened OS sandbox, production signer, GPU accounting, or real market integration items above.

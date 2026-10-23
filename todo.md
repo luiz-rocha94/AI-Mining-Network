@@ -12,9 +12,9 @@ application is a local MVP, not a production decentralized network.
 | Project or standard | Status in this repository | Planned contribution to AMN | Roadmap step |
 |---|---|---|---|
 | [OpenZeppelin Merkle Tree](https://github.com/OpenZeppelin/merkle-tree) | Compatibility checked | Keep commitment roots and inclusion proofs interoperable between AMN implementations written in different languages. | P1 — Shared protocol vectors; existing compatibility is baseline |
-| [Agent Skills](https://openagentskills.dev/docs/specification) | Partial | Provide portable, versioned skill packages that authors can publish, customers can discover and compose into workflows, and miners can interpret under explicit permissions. | P2 — Skills and tool execution |
-| [Ollama](https://ollama.com/) | Integrated locally | Provide local model discovery and structured inference so customers and miners can use installed models without requiring a proprietary cloud inference backend. | P2 — Skills and tool execution; validate existing adapter |
-| [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) | Adapter code present; optional | Expose approved skill tools through a standard agent-tool protocol, with AMN enforcing schemas, permissions, timeouts, and audit records. | P2 — Skills and tool execution |
+| [Agent Skills](https://agentskills.io/specification) | Local validation and registry implemented | Provide portable, versioned skill packages that authors can publish, customers can discover and compose into workflows, and miners can interpret under explicit permissions. | P2 — Skills and tool execution |
+| [Ollama](https://ollama.com/) | Integrated locally | Provide local model discovery and structured inference so customers and miners can use installed models without requiring a proprietary cloud inference backend. | P2 — Skills and tool execution; validated local worker adapter |
+| [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) | Optional adapter implemented and tested | Expose approved skill tools through a standard agent-tool protocol, with AMN enforcing schemas, permissions, timeouts, and audit records. | P2 — Skills and tool execution |
 | [libp2p](https://libp2p.io/) | Not integrated | Let peers discover each other and exchange signed tasks, offers, commitments, assignments, receipts, and decisions without a required central coordinator. | P3 — Peer discovery and task messaging |
 | [Helia / IPFS](https://github.com/ipfs/helia) | Not integrated | Store and retrieve public skills and benchmark artifacts by content hash, plus explicitly authorized encrypted task artifacts. | P4 — Content-addressed artifact storage |
 | [OrbitDB](https://github.com/orbitdb/orbitdb) | Not integrated | Replicate public skill metadata, benchmark submissions, ratings, and selected audit records across peers with deterministic conflict rules. | P5 — Replicated public registry (after P3–P4) |
@@ -112,8 +112,8 @@ change the offline test gate, which runs with Ollama unavailable.
 
 ## P1 — Interoperable protocol identity and message safety
 
-**Implementation and automated validation:** PASS on 2026-10-23. Maintainer
-review is pending; P2 has not started. See
+**Implementation and automated validation:** PASS on 2026-10-23. The P1
+validation gate was completed before P2 began. See
 [`docs/reports/p1-protocol-interoperability.md`](docs/reports/p1-protocol-interoperability.md)
 for evidence, reproduction commands, compatibility decisions, and limitations.
 
@@ -144,38 +144,61 @@ language and adapter boundaries.
 
 ## P2 — Validated skill packages and isolated workflow execution
 
-**Feature added:** authors can publish reusable workflow nodes, and miners can
-run supported skills with bounded permissions and resources.
+**Implementation and automated validation:** PASS on 2026-10-23 for the
+supported declarative local worker. Maintainer review is pending; do not proceed
+to P3 until this checklist is accepted. Production OS isolation remains a later
+production-readiness blocker. See
+[`docs/reports/p2-skill-runtime.md`](docs/reports/p2-skill-runtime.md) for
+evidence, commands, limits, and trust assumptions.
 
-- [ ] Check the current Agent Skills specification and add parser conformance
-  tests; validate manifests, references, paths, package sizes, version hashes,
-  and input/output schemas at publication and execution.
-- [ ] Keep declarative skills as the default. If scripts are enabled, require
-  an explicit signed package, declared tool permissions, and sandbox execution.
-- [ ] Add an isolated worker boundary with CPU/RAM/VRAM quotas, filesystem
-  scoping, network-egress policy, secret isolation, killable deadlines, and
-  cleanup after success or failure.
-- [ ] Generalize the current Ollama workflow and optional MCP SDK integration
-  to versioned tools, structured errors, cancellation, deadlines, and bounded
-  inputs/outputs. Keep Ollama local by default.
-- [ ] Treat uploaded files and model-generated tool requests as untrusted;
-  deny undeclared shell, filesystem, network, and credential access.
+**Feature added:** skill authors can publish versioned, schema-validated
+packages; local miners execute only declarative skills through a bounded,
+auditable worker and an explicit versioned tool surface.
+
+- [x] Check the current Agent Skills specification and add parser tests;
+  validate manifests, references, paths, package size, version hashes, and
+  input/output schemas at publication and execution.
+- [x] Keep skills declarative. Script execution is rejected; scripts packaged
+  as files remain inert data and are never launched by the runtime.
+- [x] Add a separate worker process with process-tree deadline, CPU-time and
+  RSS monitoring, bounded request/response sizes, a scratch workspace,
+  sanitized environment, cancellation, and cleanup. Reject local tasks that
+  require per-task GPU/VRAM reservation or arbitrary network access.
+- [x] Generalize Ollama and optional MCP to versioned tools, structured errors,
+  cancellation, deadlines, and bounded inputs/outputs. Ollama remains local by
+  default; remote use requires HTTPS and explicit authorization.
+- [x] Treat task text, uploaded content, skill guidance, and model output as
+  untrusted. The model receives no shell/filesystem tools; the only implemented
+  call is the configured Ollama endpoint.
+- [x] Record the tested boundary precisely: process limits are monitor-and-kill
+  checks, not hard kernel quotas; scratch paths are not a filesystem jail; the
+  application allow-list is not OS egress enforcement; and the external Ollama
+  daemon's CPU/RAM/VRAM is not controlled per task.
 
 **Validate before P3:**
 
-- [ ] Run supported declarative skills end-to-end and reject malformed or
-  path-traversal packages before execution.
-- [ ] Adversarial tests prove timeout termination, resource limits, network
-  denial, secret/file isolation, prompt-injection containment, and cleanup.
-- [ ] MCP tests cover malformed arguments, denied tools, cancellation, and
-  worker failure; core tests still pass with the MCP extra absent.
-- [ ] Document that the sandbox's actual isolation guarantees depend on its
-  host OS/runtime and are not stronger than the tested boundary.
+- [x] Run the supported declarative worker end-to-end and reject malformed,
+  duplicate-key, missing-reference, secret-file, and path-traversal packages.
+- [x] Run a schema-bound skill through the installed local Ollama model using
+  the isolated worker and record the model digest and response.
+- [x] Adversarial tests cover process-tree timeout/cancellation, CPU/RSS
+  termination, endpoint allow-listing, sanitized secret environment, inert skill
+  scripts, prompt-injection tool containment, output cleanup, and GPU/network
+  admission rejection.
+- [x] MCP tests cover malformed and oversized/schema-invalid arguments,
+  denied skills/tools, cancellation, worker failure, and lazy optional import;
+  core Python modules do not require the MCP extra.
+- [x] Document host-dependent limitations without claiming a hardened sandbox.
 
-**Planned open-source contribution:** Agent Skills provides portable skill
-format conventions; Ollama provides local model inference; the MCP Python SDK
-provides interoperable tool calls. AMN supplies validation, permissions,
-sandboxing, quotas, and audit events.
+**Your validation:** pending. P3 has not started; review this checklist and the
+limitations in the P2 report before approving the next step.
+
+**Planned open-source contribution:** Agent Skills supplies portable skill
+format conventions; Ollama supplies local model inference; the MCP Python SDK
+supplies interoperable tool calls. AMN contributes strict package validation,
+manifest-bound hashes, bounded declarative execution, tool permission checks,
+and auditable failure behavior. OS-enforced isolation and resource quotas remain
+required before production use.
 
 ## P3 — Coordinator-free peer discovery and task messaging
 

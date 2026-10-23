@@ -7,9 +7,12 @@ Generated from Python distribution metadata and installed pnpm package manifests
 | Package | Version | License metadata | Direct/optional |
 |---|---:|---|---|
 | `annotated-types` | 0.8.0 | MIT | transitive |
+| `anyio` | 4.15.1 | MIT | transitive |
+| `attrs` | 26.1.0 | MIT | transitive |
 | `bitarray` | 3.12.3 | PSF-2.0 | transitive |
 | `charset-normalizer` | 3.5.2 | MIT | transitive |
 | `ckzg` | 2.1.8 | Apache-2.0 | transitive |
+| `click` | 8.5.0 | BSD-3-Clause | transitive |
 | `colorama` | 0.4.6 | OSI Approved :: BSD License | transitive |
 | `cytoolz` | 1.2.0 | BSD-3-Clause | transitive |
 | `et-xmlfile` | 2.0.0 | MIT | transitive |
@@ -21,34 +24,55 @@ Generated from Python distribution metadata and installed pnpm package manifests
 | `eth-rlp` | 3.0.0 | MIT | transitive |
 | `eth-typing` | 6.0.0 | OSI Approved :: MIT License | transitive |
 | `eth-utils` | 5.3.1 | MIT | yes |
+| `h11` | 0.16.0 | MIT | transitive |
 | `hexbytes` | 2.0.0 | MIT | transitive |
+| `httpcore2` | 2.16.0 | BSD-3-Clause | transitive |
+| `httpx2` | 2.16.0 | BSD-3-Clause | transitive |
+| `idna` | 3.20 | BSD-3-Clause | transitive |
 | `iniconfig` | 2.3.1 | MIT | transitive |
+| `jsonschema` | 4.26.0 | MIT | yes |
+| `jsonschema-specifications` | 2025.9.1 | MIT | transitive |
+| `mcp` | 2.3.0 | MIT | yes |
+| `mcp-types` | 2.3.0 | MIT | transitive |
 | `openpyxl` | 3.1.5 | MIT | yes |
+| `opentelemetry-api` | 1.45.1 | Apache-2.0 | transitive |
 | `packaging` | 26.3 | Apache-2.0 OR BSD-2-Clause | transitive |
 | `parsimonious` | 0.10.0 | MIT | transitive |
-| `pillow` | 12.3.0 | MIT-CMU | transitive |
+| `pillow` | 13.0.0 | MIT-CMU | transitive |
 | `pluggy` | 1.7.0 | MIT | transitive |
+| `psutil` | 7.2.2 | BSD-3-Clause | yes |
 | `pycryptodome` | 3.24.1 | BSD, Public Domain | transitive |
 | `pydantic` | 2.14.1 | MIT | yes |
 | `pydantic-core` | 2.50.1 | MIT | transitive |
 | `pygments` | 2.21.0 | BSD-2-Clause | transitive |
-| `pypdf` | 6.10.0 | BSD-3-Clause | yes |
+| `pyjwt` | 2.15.1 | MIT | transitive |
+| `pypdf` | 6.21.2 | BSD-3-Clause | yes |
 | `pytest` | 9.1.1 | MIT | yes |
-| `regex` | 2026.9.29 | Apache-2.0 AND CNRI-Python | transitive |
-| `reportlab` | 4.4.9 | BSD license (see license.txt for details), Copyright (c) 2000-2025, ReportLab Inc. | yes |
+| `python-multipart` | 0.0.32 | Apache-2.0 | transitive |
+| `pywin32` | 312 | PSF | transitive |
+| `pyyaml` | 6.0.3 | MIT | yes |
+| `referencing` | 0.37.0 | MIT | transitive |
+| `regex` | 2026.9.29 | Apache-2.0 AND CNRI-Python | yes |
+| `reportlab` | 4.5.1 | BSD license (see license.txt for details), Copyright (c) 2000-2025, ReportLab Inc. | yes |
 | `rlp` | 5.0.0 | MIT | transitive |
+| `rpds-py` | 2026.9.1 | MIT | transitive |
 | `ruff` | 0.17.2 | MIT | yes |
+| `sse-starlette` | 3.5.0 | BSD-3-Clause | transitive |
+| `starlette` | 1.9.0 | BSD-3-Clause | transitive |
 | `toolz` | 1.2.0 | BSD-3-Clause | transitive |
+| `truststore` | 0.10.5 | MIT | transitive |
 | `typing-extensions` | 4.16.0 | PSF-2.0 | transitive |
 | `typing-inspection` | 0.4.4 | MIT | transitive |
+| `uvicorn` | 0.54.0 | BSD-3-Clause | transitive |
 
 ## Node dependencies
 
-Resolved packages: **309**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(MIT OR CC0-1.0)` 3, `0BSD` 3, `Apache-2.0` 4, `BSD-3-Clause` 11, `BlueOak-1.0.0` 4, `CC-BY-4.0` 1, `ISC` 27, `MIT` 248, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 1.
+Resolved packages: **310**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(MIT OR CC0-1.0)` 3, `0BSD` 3, `Apache-2.0` 4, `BSD-3-Clause` 11, `BlueOak-1.0.0` 4, `CC-BY-4.0` 1, `ISC` 27, `MIT` 248, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 2.
 
 | Package | Version | License metadata | Direct dependency |
 |---|---:|---|---|
 | `@adraffy/ens-normalize` | 1.11.1 | MIT | transitive |
+| `@ai-mining-network/protocol` | 2.0.0 | UNKNOWN — review required | transitive |
 | `@babel/code-frame` | 7.29.7 | MIT | transitive |
 | `@babel/compat-data` | 7.29.7 | MIT | transitive |
 | `@babel/core` | 7.29.7 | MIT | transitive |
