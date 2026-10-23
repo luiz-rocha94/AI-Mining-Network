@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-mining-network"
+version = "0.1.0"
+description = "Local-first decentralized marketplace for verifiable AI work"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+  "pydantic>=2.7,<3",
+  "pypdf>=5,<7",
+  "openpyxl>=3.1,<4",
+  "reportlab>=4,<5",
+  "eth-account>=0.13,<1",
+  "eth-abi>=5,<6",
+  "eth-utils>=5,<6",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=2,<3"]
+metrics = ["psutil>=5.9,<8"]
+dev = ["pytest>=8,<10", "ruff>=0.9"]
+
+[project.scripts]
+amn = "ai_mining_network.cli:main"
+amn-web = "ai_mining_network.web:main"
+amn-miner = "ai_mining_network.miner_cli:main"
+amn-validator = "ai_mining_network.validator_cli:main"
+amn-mcp = "ai_mining_network.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+

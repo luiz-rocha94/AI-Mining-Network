@@ -1,0 +1,2711 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-mining-network.example/protocol/v1/messages.schema.json",
+  "title": "AI Mining Network protocol v1",
+  "description": "Signed envelopes wrap typed payloads; canonical JSON and EIP-712 rules are specified in docs/protocol.md.",
+  "$defs": {
+    "SkillManifest": {
+      "$defs": {
+        "ResourceRequirements": {
+          "additionalProperties": false,
+          "properties": {
+            "cpuCores": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Cpucores",
+              "type": "integer"
+            },
+            "ramBytes": {
+              "default": 1073741824,
+              "minimum": 1,
+              "title": "Rambytes",
+              "type": "integer"
+            },
+            "vramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vrambytes",
+              "type": "integer"
+            },
+            "gpuRequired": {
+              "default": false,
+              "title": "Gpurequired",
+              "type": "boolean"
+            },
+            "networkAccess": {
+              "default": false,
+              "title": "Networkaccess",
+              "type": "boolean"
+            },
+            "timeoutSeconds": {
+              "default": 600,
+              "maximum": 86400,
+              "minimum": 1,
+              "title": "Timeoutseconds",
+              "type": "integer"
+            }
+          },
+          "title": "ResourceRequirements",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "SkillManifest",
+          "default": "SkillManifest",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "contentHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Contenthash",
+          "type": "string"
+        },
+        "skillFile": {
+          "default": "SKILL.md",
+          "title": "Skillfile",
+          "type": "string"
+        },
+        "inputSchema": {
+          "additionalProperties": true,
+          "title": "Inputschema",
+          "type": "object"
+        },
+        "outputSchema": {
+          "additionalProperties": true,
+          "title": "Outputschema",
+          "type": "object"
+        },
+        "requiredModels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Requiredmodels",
+          "type": "array"
+        },
+        "allowedTools": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowedtools",
+          "type": "array"
+        },
+        "verificationStrategy": {
+          "enum": [
+            "per-record",
+            "per-document",
+            "per-image",
+            "deterministic-batch"
+          ],
+          "title": "Verificationstrategy",
+          "type": "string"
+        },
+        "requirements": {
+          "$ref": "#/$defs/ResourceRequirements"
+        },
+        "publicBenchmarkIds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Publicbenchmarkids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "contentHash",
+        "inputSchema",
+        "outputSchema",
+        "verificationStrategy"
+      ],
+      "title": "SkillManifest",
+      "type": "object"
+    },
+    "SkillBenchmark": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "SkillBenchmark",
+          "default": "SkillBenchmark",
+          "title": "Kind",
+          "type": "string"
+        },
+        "benchmarkVersion": {
+          "default": "invoice-synthetic-v1",
+          "title": "Benchmarkversion",
+          "type": "string"
+        },
+        "skillHash": {
+          "title": "Skillhash",
+          "type": "string"
+        },
+        "datasetHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Datasethash",
+          "type": "string"
+        },
+        "runtime": {
+          "title": "Runtime",
+          "type": "string"
+        },
+        "modelDigest": {
+          "title": "Modeldigest",
+          "type": "string"
+        },
+        "hardwareClass": {
+          "title": "Hardwareclass",
+          "type": "string"
+        },
+        "sampleCount": {
+          "minimum": 1,
+          "title": "Samplecount",
+          "type": "integer"
+        },
+        "inputTokens": {
+          "minimum": 0,
+          "title": "Inputtokens",
+          "type": "integer"
+        },
+        "outputTokens": {
+          "minimum": 0,
+          "title": "Outputtokens",
+          "type": "integer"
+        },
+        "p50DurationMs": {
+          "minimum": 0,
+          "title": "P50Durationms",
+          "type": "integer"
+        },
+        "p90DurationMs": {
+          "minimum": 0,
+          "title": "P90Durationms",
+          "type": "integer"
+        },
+        "cpuAverageMilliPct": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cpuaveragemillipct"
+        },
+        "peakRamBytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peakrambytes"
+        },
+        "peakVramBytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peakvrambytes"
+        },
+        "successRateBps": {
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Successratebps",
+          "type": "integer"
+        },
+        "outputValidationPasses": {
+          "minimum": 0,
+          "title": "Outputvalidationpasses",
+          "type": "integer"
+        },
+        "selfReportedMetrics": {
+          "default": true,
+          "title": "Selfreportedmetrics",
+          "type": "boolean"
+        },
+        "receiptId": {
+          "title": "Receiptid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "skillHash",
+        "datasetHash",
+        "runtime",
+        "modelDigest",
+        "hardwareClass",
+        "sampleCount",
+        "inputTokens",
+        "outputTokens",
+        "p50DurationMs",
+        "p90DurationMs",
+        "successRateBps",
+        "outputValidationPasses",
+        "receiptId"
+      ],
+      "title": "SkillBenchmark",
+      "type": "object"
+    },
+    "MinerCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "MinerCapabilities",
+          "default": "MinerCapabilities",
+          "title": "Kind",
+          "type": "string"
+        },
+        "peerId": {
+          "title": "Peerid",
+          "type": "string"
+        },
+        "paymentAddress": {
+          "title": "Paymentaddress",
+          "type": "string"
+        },
+        "cpuCores": {
+          "minimum": 1,
+          "title": "Cpucores",
+          "type": "integer"
+        },
+        "ramBytes": {
+          "minimum": 1,
+          "title": "Rambytes",
+          "type": "integer"
+        },
+        "gpuModels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Gpumodels",
+          "type": "array"
+        },
+        "vramBytes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Vrambytes",
+          "type": "integer"
+        },
+        "modelDigests": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Modeldigests",
+          "type": "array"
+        },
+        "skillHashes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Skillhashes",
+          "type": "array"
+        },
+        "supportedRuntimes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supportedruntimes",
+          "type": "array"
+        },
+        "available": {
+          "default": true,
+          "title": "Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "peerId",
+        "paymentAddress",
+        "cpuCores",
+        "ramBytes"
+      ],
+      "title": "MinerCapabilities",
+      "type": "object"
+    },
+    "ValidatorCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ValidatorCapabilities",
+          "default": "ValidatorCapabilities",
+          "title": "Kind",
+          "type": "string"
+        },
+        "peerId": {
+          "title": "Peerid",
+          "type": "string"
+        },
+        "paymentAddress": {
+          "title": "Paymentaddress",
+          "type": "string"
+        },
+        "verificationStrategies": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Verificationstrategies",
+          "type": "array"
+        },
+        "modelDigests": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Modeldigests",
+          "type": "array"
+        },
+        "maxUnitsPerTask": {
+          "default": 100,
+          "minimum": 1,
+          "title": "Maxunitspertask",
+          "type": "integer"
+        },
+        "available": {
+          "default": true,
+          "title": "Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "peerId",
+        "paymentAddress",
+        "verificationStrategies"
+      ],
+      "title": "ValidatorCapabilities",
+      "type": "object"
+    },
+    "MinerOffer": {
+      "$defs": {
+        "Currency": {
+          "additionalProperties": false,
+          "properties": {
+            "chainId": {
+              "exclusiveMinimum": 0,
+              "title": "Chainid",
+              "type": "integer"
+            },
+            "tokenAddress": {
+              "title": "Tokenaddress",
+              "type": "string"
+            },
+            "decimals": {
+              "maximum": 36,
+              "minimum": 0,
+              "title": "Decimals",
+              "type": "integer"
+            },
+            "symbol": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          "required": [
+            "chainId",
+            "tokenAddress",
+            "decimals",
+            "symbol"
+          ],
+          "title": "Currency",
+          "type": "object"
+        },
+        "ResourceRequirements": {
+          "additionalProperties": false,
+          "properties": {
+            "cpuCores": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Cpucores",
+              "type": "integer"
+            },
+            "ramBytes": {
+              "default": 1073741824,
+              "minimum": 1,
+              "title": "Rambytes",
+              "type": "integer"
+            },
+            "vramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vrambytes",
+              "type": "integer"
+            },
+            "gpuRequired": {
+              "default": false,
+              "title": "Gpurequired",
+              "type": "boolean"
+            },
+            "networkAccess": {
+              "default": false,
+              "title": "Networkaccess",
+              "type": "boolean"
+            },
+            "timeoutSeconds": {
+              "default": 600,
+              "maximum": 86400,
+              "minimum": 1,
+              "title": "Timeoutseconds",
+              "type": "integer"
+            }
+          },
+          "title": "ResourceRequirements",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "MinerOffer",
+          "default": "MinerOffer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offerId": {
+          "title": "Offerid",
+          "type": "string"
+        },
+        "peerId": {
+          "title": "Peerid",
+          "type": "string"
+        },
+        "skillHash": {
+          "title": "Skillhash",
+          "type": "string"
+        },
+        "priceAtomic": {
+          "minimum": 0,
+          "title": "Priceatomic",
+          "type": "integer"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "estimatedDurationMs": {
+          "minimum": 0,
+          "title": "Estimateddurationms",
+          "type": "integer"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "requirements": {
+          "$ref": "#/$defs/ResourceRequirements"
+        }
+      },
+      "required": [
+        "offerId",
+        "peerId",
+        "skillHash",
+        "priceAtomic",
+        "currency",
+        "estimatedDurationMs",
+        "expiresAt"
+      ],
+      "title": "MinerOffer",
+      "type": "object"
+    },
+    "CustomerTask": {
+      "$defs": {
+        "Currency": {
+          "additionalProperties": false,
+          "properties": {
+            "chainId": {
+              "exclusiveMinimum": 0,
+              "title": "Chainid",
+              "type": "integer"
+            },
+            "tokenAddress": {
+              "title": "Tokenaddress",
+              "type": "string"
+            },
+            "decimals": {
+              "maximum": 36,
+              "minimum": 0,
+              "title": "Decimals",
+              "type": "integer"
+            },
+            "symbol": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          "required": [
+            "chainId",
+            "tokenAddress",
+            "decimals",
+            "symbol"
+          ],
+          "title": "Currency",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "CustomerTask",
+          "default": "CustomerTask",
+          "title": "Kind",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "skillHash": {
+          "title": "Skillhash",
+          "type": "string"
+        },
+        "workflowHash": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Workflowhash"
+        },
+        "inputSetHash": {
+          "title": "Inputsethash",
+          "type": "string"
+        },
+        "promptHash": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompthash"
+        },
+        "outputSchemaHash": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outputschemahash"
+        },
+        "modelName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modelname"
+        },
+        "modelDigest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modeldigest"
+        },
+        "inputCount": {
+          "minimum": 1,
+          "title": "Inputcount",
+          "type": "integer"
+        },
+        "partitioning": {
+          "enum": [
+            "per-record",
+            "per-document",
+            "per-image",
+            "deterministic-batch"
+          ],
+          "title": "Partitioning",
+          "type": "string"
+        },
+        "requestedOutput": {
+          "title": "Requestedoutput",
+          "type": "string"
+        },
+        "maxPriceAtomic": {
+          "minimum": 0,
+          "title": "Maxpriceatomic",
+          "type": "integer"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "deadline": {
+          "format": "date-time",
+          "title": "Deadline",
+          "type": "string"
+        },
+        "verificationSampleCount": {
+          "minimum": 1,
+          "title": "Verificationsamplecount",
+          "type": "integer"
+        },
+        "validatorCount": {
+          "minimum": 1,
+          "title": "Validatorcount",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "taskId",
+        "skillHash",
+        "inputSetHash",
+        "inputCount",
+        "partitioning",
+        "requestedOutput",
+        "maxPriceAtomic",
+        "currency",
+        "deadline",
+        "verificationSampleCount",
+        "validatorCount"
+      ],
+      "title": "CustomerTask",
+      "type": "object"
+    },
+    "FixedPriceQuote": {
+      "$defs": {
+        "Currency": {
+          "additionalProperties": false,
+          "properties": {
+            "chainId": {
+              "exclusiveMinimum": 0,
+              "title": "Chainid",
+              "type": "integer"
+            },
+            "tokenAddress": {
+              "title": "Tokenaddress",
+              "type": "string"
+            },
+            "decimals": {
+              "maximum": 36,
+              "minimum": 0,
+              "title": "Decimals",
+              "type": "integer"
+            },
+            "symbol": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          "required": [
+            "chainId",
+            "tokenAddress",
+            "decimals",
+            "symbol"
+          ],
+          "title": "Currency",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "FixedPriceQuote",
+          "default": "FixedPriceQuote",
+          "title": "Kind",
+          "type": "string"
+        },
+        "quoteId": {
+          "title": "Quoteid",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "executionRewardAtomic": {
+          "minimum": 0,
+          "title": "Executionrewardatomic",
+          "type": "integer"
+        },
+        "verificationBudgetAtomic": {
+          "minimum": 0,
+          "title": "Verificationbudgetatomic",
+          "type": "integer"
+        },
+        "protocolFeeAtomic": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Protocolfeeatomic",
+          "type": "integer"
+        },
+        "totalAtomic": {
+          "minimum": 0,
+          "title": "Totalatomic",
+          "type": "integer"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "executorOfferId": {
+          "title": "Executorofferid",
+          "type": "string"
+        },
+        "validatorOfferIds": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Validatorofferids",
+          "type": "array"
+        },
+        "sampleCount": {
+          "minimum": 1,
+          "title": "Samplecount",
+          "type": "integer"
+        },
+        "validatorCount": {
+          "minimum": 1,
+          "title": "Validatorcount",
+          "type": "integer"
+        },
+        "failureRules": {
+          "additionalProperties": true,
+          "title": "Failurerules",
+          "type": "object"
+        },
+        "verificationPolicy": {
+          "additionalProperties": true,
+          "title": "Verificationpolicy",
+          "type": "object"
+        }
+      },
+      "required": [
+        "quoteId",
+        "taskId",
+        "executionRewardAtomic",
+        "verificationBudgetAtomic",
+        "totalAtomic",
+        "currency",
+        "expiresAt",
+        "executorOfferId",
+        "validatorOfferIds",
+        "sampleCount",
+        "validatorCount",
+        "failureRules",
+        "verificationPolicy"
+      ],
+      "title": "FixedPriceQuote",
+      "type": "object"
+    },
+    "ExecutionContract": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ExecutionContract",
+          "default": "ExecutionContract",
+          "title": "Kind",
+          "type": "string"
+        },
+        "contractId": {
+          "title": "Contractid",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "quoteId": {
+          "title": "Quoteid",
+          "type": "string"
+        },
+        "executorPeerId": {
+          "title": "Executorpeerid",
+          "type": "string"
+        },
+        "acceptedAt": {
+          "format": "date-time",
+          "title": "Acceptedat",
+          "type": "string"
+        },
+        "commitDeadline": {
+          "format": "date-time",
+          "title": "Commitdeadline",
+          "type": "string"
+        },
+        "challengeRound": {
+          "minimum": 1,
+          "title": "Challengeround",
+          "type": "integer"
+        },
+        "idempotencyKey": {
+          "title": "Idempotencykey",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contractId",
+        "taskId",
+        "quoteId",
+        "executorPeerId",
+        "acceptedAt",
+        "commitDeadline",
+        "challengeRound",
+        "idempotencyKey"
+      ],
+      "title": "ExecutionContract",
+      "type": "object"
+    },
+    "ExecutionUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "unitId": {
+          "title": "Unitid",
+          "type": "string"
+        },
+        "inputHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Inputhash",
+          "type": "string"
+        },
+        "outputHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Outputhash",
+          "type": "string"
+        },
+        "inputRef": {
+          "title": "Inputref",
+          "type": "string"
+        },
+        "outputRef": {
+          "title": "Outputref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unitId",
+        "inputHash",
+        "outputHash",
+        "inputRef",
+        "outputRef"
+      ],
+      "title": "ExecutionUnit",
+      "type": "object"
+    },
+    "ExecutionCommitment": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ExecutionCommitment",
+          "default": "ExecutionCommitment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "contractId": {
+          "title": "Contractid",
+          "type": "string"
+        },
+        "merkleRoot": {
+          "pattern": "^0x[0-9a-f]{64}$",
+          "title": "Merkleroot",
+          "type": "string"
+        },
+        "outputArtifactHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Outputartifacthash",
+          "type": "string"
+        },
+        "unitCount": {
+          "minimum": 1,
+          "title": "Unitcount",
+          "type": "integer"
+        },
+        "leafEncoding": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Leafencoding",
+          "type": "array"
+        },
+        "committedAt": {
+          "format": "date-time",
+          "title": "Committedat",
+          "type": "string"
+        },
+        "challengeRound": {
+          "minimum": 1,
+          "title": "Challengeround",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "taskId",
+        "contractId",
+        "merkleRoot",
+        "outputArtifactHash",
+        "unitCount",
+        "leafEncoding",
+        "committedAt",
+        "challengeRound"
+      ],
+      "title": "ExecutionCommitment",
+      "type": "object"
+    },
+    "VerificationAssignment": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "VerificationAssignment",
+          "default": "VerificationAssignment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "commitmentRoot": {
+          "title": "Commitmentroot",
+          "type": "string"
+        },
+        "randomnessRound": {
+          "minimum": 1,
+          "title": "Randomnessround",
+          "type": "integer"
+        },
+        "randomnessValue": {
+          "title": "Randomnessvalue",
+          "type": "string"
+        },
+        "randomnessVerified": {
+          "title": "Randomnessverified",
+          "type": "boolean"
+        },
+        "validatorPeerId": {
+          "title": "Validatorpeerid",
+          "type": "string"
+        },
+        "unitIds": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Unitids",
+          "type": "array"
+        },
+        "assignmentIndex": {
+          "minimum": 0,
+          "title": "Assignmentindex",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "taskId",
+        "commitmentRoot",
+        "randomnessRound",
+        "randomnessValue",
+        "randomnessVerified",
+        "validatorPeerId",
+        "unitIds",
+        "assignmentIndex"
+      ],
+      "title": "VerificationAssignment",
+      "type": "object"
+    },
+    "VerificationReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "VerificationReceipt",
+          "default": "VerificationReceipt",
+          "title": "Kind",
+          "type": "string"
+        },
+        "receiptId": {
+          "title": "Receiptid",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "commitmentRoot": {
+          "title": "Commitmentroot",
+          "type": "string"
+        },
+        "validatorPeerId": {
+          "title": "Validatorpeerid",
+          "type": "string"
+        },
+        "unitId": {
+          "title": "Unitid",
+          "type": "string"
+        },
+        "result": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "INCONCLUSIVE",
+            "TIMEOUT",
+            "DISPUTE"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "observedOutputHash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observedoutputhash"
+        },
+        "evidenceHash": {
+          "title": "Evidencehash",
+          "type": "string"
+        },
+        "merkleProof": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Merkleproof",
+          "type": "array"
+        },
+        "reasonCode": {
+          "title": "Reasoncode",
+          "type": "string"
+        },
+        "modelDigest": {
+          "title": "Modeldigest",
+          "type": "string"
+        },
+        "durationMs": {
+          "minimum": 0,
+          "title": "Durationms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "receiptId",
+        "taskId",
+        "commitmentRoot",
+        "validatorPeerId",
+        "unitId",
+        "result",
+        "evidenceHash",
+        "merkleProof",
+        "reasonCode",
+        "modelDigest",
+        "durationMs"
+      ],
+      "title": "VerificationReceipt",
+      "type": "object"
+    },
+    "VerificationDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "VerificationDecision",
+          "default": "VerificationDecision",
+          "title": "Kind",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "VERIFIED",
+            "FAILED",
+            "INCONCLUSIVE",
+            "DISPUTED"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "reasonCode": {
+          "title": "Reasoncode",
+          "type": "string"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "acceptedReceiptIds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Acceptedreceiptids",
+          "type": "array"
+        },
+        "rejectedReceiptIds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rejectedreceiptids",
+          "type": "array"
+        },
+        "auditRequired": {
+          "title": "Auditrequired",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "taskId",
+        "outcome",
+        "reasonCode",
+        "explanation",
+        "acceptedReceiptIds",
+        "rejectedReceiptIds",
+        "auditRequired"
+      ],
+      "title": "VerificationDecision",
+      "type": "object"
+    },
+    "PaymentSettlement": {
+      "$defs": {
+        "Currency": {
+          "additionalProperties": false,
+          "properties": {
+            "chainId": {
+              "exclusiveMinimum": 0,
+              "title": "Chainid",
+              "type": "integer"
+            },
+            "tokenAddress": {
+              "title": "Tokenaddress",
+              "type": "string"
+            },
+            "decimals": {
+              "maximum": 36,
+              "minimum": 0,
+              "title": "Decimals",
+              "type": "integer"
+            },
+            "symbol": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          "required": [
+            "chainId",
+            "tokenAddress",
+            "decimals",
+            "symbol"
+          ],
+          "title": "Currency",
+          "type": "object"
+        },
+        "Payout": {
+          "additionalProperties": false,
+          "properties": {
+            "payee": {
+              "title": "Payee",
+              "type": "string"
+            },
+            "amountAtomic": {
+              "minimum": 0,
+              "title": "Amountatomic",
+              "type": "integer"
+            },
+            "purpose": {
+              "enum": [
+                "execution",
+                "verification",
+                "protocol-fee",
+                "refund"
+              ],
+              "title": "Purpose",
+              "type": "string"
+            }
+          },
+          "required": [
+            "payee",
+            "amountAtomic",
+            "purpose"
+          ],
+          "title": "Payout",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "PaymentSettlement",
+          "default": "PaymentSettlement",
+          "title": "Kind",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "quoteId": {
+          "title": "Quoteid",
+          "type": "string"
+        },
+        "settlementId": {
+          "title": "Settlementid",
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "title": "Idempotencykey",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "SETTLED",
+            "REFUNDED",
+            "DISPUTED"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "payouts": {
+          "items": {
+            "$ref": "#/$defs/Payout"
+          },
+          "title": "Payouts",
+          "type": "array"
+        },
+        "totalChargedAtomic": {
+          "minimum": 0,
+          "title": "Totalchargedatomic",
+          "type": "integer"
+        },
+        "decisionHash": {
+          "title": "Decisionhash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "taskId",
+        "quoteId",
+        "settlementId",
+        "idempotencyKey",
+        "outcome",
+        "currency",
+        "payouts",
+        "totalChargedAtomic",
+        "decisionHash"
+      ],
+      "title": "PaymentSettlement",
+      "type": "object"
+    },
+    "SkillRating": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "SkillRating",
+          "default": "SkillRating",
+          "title": "Kind",
+          "type": "string"
+        },
+        "ratingId": {
+          "title": "Ratingid",
+          "type": "string"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "skillHash": {
+          "title": "Skillhash",
+          "type": "string"
+        },
+        "stars": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Stars",
+          "type": "integer"
+        },
+        "comment": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Comment",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ratingId",
+        "taskId",
+        "skillHash",
+        "stars"
+      ],
+      "title": "SkillRating",
+      "type": "object"
+    },
+    "SignedMessage": {
+      "$defs": {
+        "Currency": {
+          "additionalProperties": false,
+          "properties": {
+            "chainId": {
+              "exclusiveMinimum": 0,
+              "title": "Chainid",
+              "type": "integer"
+            },
+            "tokenAddress": {
+              "title": "Tokenaddress",
+              "type": "string"
+            },
+            "decimals": {
+              "maximum": 36,
+              "minimum": 0,
+              "title": "Decimals",
+              "type": "integer"
+            },
+            "symbol": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          "required": [
+            "chainId",
+            "tokenAddress",
+            "decimals",
+            "symbol"
+          ],
+          "title": "Currency",
+          "type": "object"
+        },
+        "CustomerTask": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "CustomerTask",
+              "default": "CustomerTask",
+              "title": "Kind",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "skillHash": {
+              "title": "Skillhash",
+              "type": "string"
+            },
+            "workflowHash": {
+              "anyOf": [
+                {
+                  "pattern": "^sha256:[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Workflowhash"
+            },
+            "inputSetHash": {
+              "title": "Inputsethash",
+              "type": "string"
+            },
+            "promptHash": {
+              "anyOf": [
+                {
+                  "pattern": "^sha256:[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Prompthash"
+            },
+            "outputSchemaHash": {
+              "anyOf": [
+                {
+                  "pattern": "^sha256:[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Outputschemahash"
+            },
+            "modelName": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Modelname"
+            },
+            "modelDigest": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Modeldigest"
+            },
+            "inputCount": {
+              "minimum": 1,
+              "title": "Inputcount",
+              "type": "integer"
+            },
+            "partitioning": {
+              "enum": [
+                "per-record",
+                "per-document",
+                "per-image",
+                "deterministic-batch"
+              ],
+              "title": "Partitioning",
+              "type": "string"
+            },
+            "requestedOutput": {
+              "title": "Requestedoutput",
+              "type": "string"
+            },
+            "maxPriceAtomic": {
+              "minimum": 0,
+              "title": "Maxpriceatomic",
+              "type": "integer"
+            },
+            "currency": {
+              "$ref": "#/$defs/Currency"
+            },
+            "deadline": {
+              "format": "date-time",
+              "title": "Deadline",
+              "type": "string"
+            },
+            "verificationSampleCount": {
+              "minimum": 1,
+              "title": "Verificationsamplecount",
+              "type": "integer"
+            },
+            "validatorCount": {
+              "minimum": 1,
+              "title": "Validatorcount",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "taskId",
+            "skillHash",
+            "inputSetHash",
+            "inputCount",
+            "partitioning",
+            "requestedOutput",
+            "maxPriceAtomic",
+            "currency",
+            "deadline",
+            "verificationSampleCount",
+            "validatorCount"
+          ],
+          "title": "CustomerTask",
+          "type": "object"
+        },
+        "ExecutionCommitment": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "ExecutionCommitment",
+              "default": "ExecutionCommitment",
+              "title": "Kind",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "contractId": {
+              "title": "Contractid",
+              "type": "string"
+            },
+            "merkleRoot": {
+              "pattern": "^0x[0-9a-f]{64}$",
+              "title": "Merkleroot",
+              "type": "string"
+            },
+            "outputArtifactHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Outputartifacthash",
+              "type": "string"
+            },
+            "unitCount": {
+              "minimum": 1,
+              "title": "Unitcount",
+              "type": "integer"
+            },
+            "leafEncoding": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Leafencoding",
+              "type": "array"
+            },
+            "committedAt": {
+              "format": "date-time",
+              "title": "Committedat",
+              "type": "string"
+            },
+            "challengeRound": {
+              "minimum": 1,
+              "title": "Challengeround",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "taskId",
+            "contractId",
+            "merkleRoot",
+            "outputArtifactHash",
+            "unitCount",
+            "leafEncoding",
+            "committedAt",
+            "challengeRound"
+          ],
+          "title": "ExecutionCommitment",
+          "type": "object"
+        },
+        "ExecutionContract": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "ExecutionContract",
+              "default": "ExecutionContract",
+              "title": "Kind",
+              "type": "string"
+            },
+            "contractId": {
+              "title": "Contractid",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "quoteId": {
+              "title": "Quoteid",
+              "type": "string"
+            },
+            "executorPeerId": {
+              "title": "Executorpeerid",
+              "type": "string"
+            },
+            "acceptedAt": {
+              "format": "date-time",
+              "title": "Acceptedat",
+              "type": "string"
+            },
+            "commitDeadline": {
+              "format": "date-time",
+              "title": "Commitdeadline",
+              "type": "string"
+            },
+            "challengeRound": {
+              "minimum": 1,
+              "title": "Challengeround",
+              "type": "integer"
+            },
+            "idempotencyKey": {
+              "title": "Idempotencykey",
+              "type": "string"
+            }
+          },
+          "required": [
+            "contractId",
+            "taskId",
+            "quoteId",
+            "executorPeerId",
+            "acceptedAt",
+            "commitDeadline",
+            "challengeRound",
+            "idempotencyKey"
+          ],
+          "title": "ExecutionContract",
+          "type": "object"
+        },
+        "FixedPriceQuote": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "FixedPriceQuote",
+              "default": "FixedPriceQuote",
+              "title": "Kind",
+              "type": "string"
+            },
+            "quoteId": {
+              "title": "Quoteid",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "executionRewardAtomic": {
+              "minimum": 0,
+              "title": "Executionrewardatomic",
+              "type": "integer"
+            },
+            "verificationBudgetAtomic": {
+              "minimum": 0,
+              "title": "Verificationbudgetatomic",
+              "type": "integer"
+            },
+            "protocolFeeAtomic": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Protocolfeeatomic",
+              "type": "integer"
+            },
+            "totalAtomic": {
+              "minimum": 0,
+              "title": "Totalatomic",
+              "type": "integer"
+            },
+            "currency": {
+              "$ref": "#/$defs/Currency"
+            },
+            "expiresAt": {
+              "format": "date-time",
+              "title": "Expiresat",
+              "type": "string"
+            },
+            "executorOfferId": {
+              "title": "Executorofferid",
+              "type": "string"
+            },
+            "validatorOfferIds": {
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "title": "Validatorofferids",
+              "type": "array"
+            },
+            "sampleCount": {
+              "minimum": 1,
+              "title": "Samplecount",
+              "type": "integer"
+            },
+            "validatorCount": {
+              "minimum": 1,
+              "title": "Validatorcount",
+              "type": "integer"
+            },
+            "failureRules": {
+              "additionalProperties": true,
+              "title": "Failurerules",
+              "type": "object"
+            },
+            "verificationPolicy": {
+              "additionalProperties": true,
+              "title": "Verificationpolicy",
+              "type": "object"
+            }
+          },
+          "required": [
+            "quoteId",
+            "taskId",
+            "executionRewardAtomic",
+            "verificationBudgetAtomic",
+            "totalAtomic",
+            "currency",
+            "expiresAt",
+            "executorOfferId",
+            "validatorOfferIds",
+            "sampleCount",
+            "validatorCount",
+            "failureRules",
+            "verificationPolicy"
+          ],
+          "title": "FixedPriceQuote",
+          "type": "object"
+        },
+        "MinerCapabilities": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "MinerCapabilities",
+              "default": "MinerCapabilities",
+              "title": "Kind",
+              "type": "string"
+            },
+            "peerId": {
+              "title": "Peerid",
+              "type": "string"
+            },
+            "paymentAddress": {
+              "title": "Paymentaddress",
+              "type": "string"
+            },
+            "cpuCores": {
+              "minimum": 1,
+              "title": "Cpucores",
+              "type": "integer"
+            },
+            "ramBytes": {
+              "minimum": 1,
+              "title": "Rambytes",
+              "type": "integer"
+            },
+            "gpuModels": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Gpumodels",
+              "type": "array"
+            },
+            "vramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vrambytes",
+              "type": "integer"
+            },
+            "modelDigests": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Modeldigests",
+              "type": "array"
+            },
+            "skillHashes": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Skillhashes",
+              "type": "array"
+            },
+            "supportedRuntimes": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Supportedruntimes",
+              "type": "array"
+            },
+            "available": {
+              "default": true,
+              "title": "Available",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "peerId",
+            "paymentAddress",
+            "cpuCores",
+            "ramBytes"
+          ],
+          "title": "MinerCapabilities",
+          "type": "object"
+        },
+        "MinerOffer": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "MinerOffer",
+              "default": "MinerOffer",
+              "title": "Kind",
+              "type": "string"
+            },
+            "offerId": {
+              "title": "Offerid",
+              "type": "string"
+            },
+            "peerId": {
+              "title": "Peerid",
+              "type": "string"
+            },
+            "skillHash": {
+              "title": "Skillhash",
+              "type": "string"
+            },
+            "priceAtomic": {
+              "minimum": 0,
+              "title": "Priceatomic",
+              "type": "integer"
+            },
+            "currency": {
+              "$ref": "#/$defs/Currency"
+            },
+            "estimatedDurationMs": {
+              "minimum": 0,
+              "title": "Estimateddurationms",
+              "type": "integer"
+            },
+            "expiresAt": {
+              "format": "date-time",
+              "title": "Expiresat",
+              "type": "string"
+            },
+            "requirements": {
+              "$ref": "#/$defs/ResourceRequirements"
+            }
+          },
+          "required": [
+            "offerId",
+            "peerId",
+            "skillHash",
+            "priceAtomic",
+            "currency",
+            "estimatedDurationMs",
+            "expiresAt"
+          ],
+          "title": "MinerOffer",
+          "type": "object"
+        },
+        "PaymentSettlement": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "PaymentSettlement",
+              "default": "PaymentSettlement",
+              "title": "Kind",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "quoteId": {
+              "title": "Quoteid",
+              "type": "string"
+            },
+            "settlementId": {
+              "title": "Settlementid",
+              "type": "string"
+            },
+            "idempotencyKey": {
+              "title": "Idempotencykey",
+              "type": "string"
+            },
+            "outcome": {
+              "enum": [
+                "SETTLED",
+                "REFUNDED",
+                "DISPUTED"
+              ],
+              "title": "Outcome",
+              "type": "string"
+            },
+            "currency": {
+              "$ref": "#/$defs/Currency"
+            },
+            "payouts": {
+              "items": {
+                "$ref": "#/$defs/Payout"
+              },
+              "title": "Payouts",
+              "type": "array"
+            },
+            "totalChargedAtomic": {
+              "minimum": 0,
+              "title": "Totalchargedatomic",
+              "type": "integer"
+            },
+            "decisionHash": {
+              "title": "Decisionhash",
+              "type": "string"
+            }
+          },
+          "required": [
+            "taskId",
+            "quoteId",
+            "settlementId",
+            "idempotencyKey",
+            "outcome",
+            "currency",
+            "payouts",
+            "totalChargedAtomic",
+            "decisionHash"
+          ],
+          "title": "PaymentSettlement",
+          "type": "object"
+        },
+        "Payout": {
+          "additionalProperties": false,
+          "properties": {
+            "payee": {
+              "title": "Payee",
+              "type": "string"
+            },
+            "amountAtomic": {
+              "minimum": 0,
+              "title": "Amountatomic",
+              "type": "integer"
+            },
+            "purpose": {
+              "enum": [
+                "execution",
+                "verification",
+                "protocol-fee",
+                "refund"
+              ],
+              "title": "Purpose",
+              "type": "string"
+            }
+          },
+          "required": [
+            "payee",
+            "amountAtomic",
+            "purpose"
+          ],
+          "title": "Payout",
+          "type": "object"
+        },
+        "ResourceRequirements": {
+          "additionalProperties": false,
+          "properties": {
+            "cpuCores": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Cpucores",
+              "type": "integer"
+            },
+            "ramBytes": {
+              "default": 1073741824,
+              "minimum": 1,
+              "title": "Rambytes",
+              "type": "integer"
+            },
+            "vramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vrambytes",
+              "type": "integer"
+            },
+            "gpuRequired": {
+              "default": false,
+              "title": "Gpurequired",
+              "type": "boolean"
+            },
+            "networkAccess": {
+              "default": false,
+              "title": "Networkaccess",
+              "type": "boolean"
+            },
+            "timeoutSeconds": {
+              "default": 600,
+              "maximum": 86400,
+              "minimum": 1,
+              "title": "Timeoutseconds",
+              "type": "integer"
+            }
+          },
+          "title": "ResourceRequirements",
+          "type": "object"
+        },
+        "SkillBenchmark": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "SkillBenchmark",
+              "default": "SkillBenchmark",
+              "title": "Kind",
+              "type": "string"
+            },
+            "benchmarkVersion": {
+              "default": "invoice-synthetic-v1",
+              "title": "Benchmarkversion",
+              "type": "string"
+            },
+            "skillHash": {
+              "title": "Skillhash",
+              "type": "string"
+            },
+            "datasetHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Datasethash",
+              "type": "string"
+            },
+            "runtime": {
+              "title": "Runtime",
+              "type": "string"
+            },
+            "modelDigest": {
+              "title": "Modeldigest",
+              "type": "string"
+            },
+            "hardwareClass": {
+              "title": "Hardwareclass",
+              "type": "string"
+            },
+            "sampleCount": {
+              "minimum": 1,
+              "title": "Samplecount",
+              "type": "integer"
+            },
+            "inputTokens": {
+              "minimum": 0,
+              "title": "Inputtokens",
+              "type": "integer"
+            },
+            "outputTokens": {
+              "minimum": 0,
+              "title": "Outputtokens",
+              "type": "integer"
+            },
+            "p50DurationMs": {
+              "minimum": 0,
+              "title": "P50Durationms",
+              "type": "integer"
+            },
+            "p90DurationMs": {
+              "minimum": 0,
+              "title": "P90Durationms",
+              "type": "integer"
+            },
+            "cpuAverageMilliPct": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cpuaveragemillipct"
+            },
+            "peakRamBytes": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Peakrambytes"
+            },
+            "peakVramBytes": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Peakvrambytes"
+            },
+            "successRateBps": {
+              "maximum": 10000,
+              "minimum": 0,
+              "title": "Successratebps",
+              "type": "integer"
+            },
+            "outputValidationPasses": {
+              "minimum": 0,
+              "title": "Outputvalidationpasses",
+              "type": "integer"
+            },
+            "selfReportedMetrics": {
+              "default": true,
+              "title": "Selfreportedmetrics",
+              "type": "boolean"
+            },
+            "receiptId": {
+              "title": "Receiptid",
+              "type": "string"
+            }
+          },
+          "required": [
+            "skillHash",
+            "datasetHash",
+            "runtime",
+            "modelDigest",
+            "hardwareClass",
+            "sampleCount",
+            "inputTokens",
+            "outputTokens",
+            "p50DurationMs",
+            "p90DurationMs",
+            "successRateBps",
+            "outputValidationPasses",
+            "receiptId"
+          ],
+          "title": "SkillBenchmark",
+          "type": "object"
+        },
+        "SkillManifest": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "SkillManifest",
+              "default": "SkillManifest",
+              "title": "Kind",
+              "type": "string"
+            },
+            "name": {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "title": "Name",
+              "type": "string"
+            },
+            "version": {
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Version",
+              "type": "string"
+            },
+            "contentHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Contenthash",
+              "type": "string"
+            },
+            "skillFile": {
+              "default": "SKILL.md",
+              "title": "Skillfile",
+              "type": "string"
+            },
+            "inputSchema": {
+              "additionalProperties": true,
+              "title": "Inputschema",
+              "type": "object"
+            },
+            "outputSchema": {
+              "additionalProperties": true,
+              "title": "Outputschema",
+              "type": "object"
+            },
+            "requiredModels": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Requiredmodels",
+              "type": "array"
+            },
+            "allowedTools": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Allowedtools",
+              "type": "array"
+            },
+            "verificationStrategy": {
+              "enum": [
+                "per-record",
+                "per-document",
+                "per-image",
+                "deterministic-batch"
+              ],
+              "title": "Verificationstrategy",
+              "type": "string"
+            },
+            "requirements": {
+              "$ref": "#/$defs/ResourceRequirements"
+            },
+            "publicBenchmarkIds": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Publicbenchmarkids",
+              "type": "array"
+            }
+          },
+          "required": [
+            "name",
+            "version",
+            "contentHash",
+            "inputSchema",
+            "outputSchema",
+            "verificationStrategy"
+          ],
+          "title": "SkillManifest",
+          "type": "object"
+        },
+        "SkillRating": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "SkillRating",
+              "default": "SkillRating",
+              "title": "Kind",
+              "type": "string"
+            },
+            "ratingId": {
+              "title": "Ratingid",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "skillHash": {
+              "title": "Skillhash",
+              "type": "string"
+            },
+            "stars": {
+              "maximum": 5,
+              "minimum": 1,
+              "title": "Stars",
+              "type": "integer"
+            },
+            "comment": {
+              "default": "",
+              "maxLength": 1000,
+              "title": "Comment",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ratingId",
+            "taskId",
+            "skillHash",
+            "stars"
+          ],
+          "title": "SkillRating",
+          "type": "object"
+        },
+        "ValidatorCapabilities": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "ValidatorCapabilities",
+              "default": "ValidatorCapabilities",
+              "title": "Kind",
+              "type": "string"
+            },
+            "peerId": {
+              "title": "Peerid",
+              "type": "string"
+            },
+            "paymentAddress": {
+              "title": "Paymentaddress",
+              "type": "string"
+            },
+            "verificationStrategies": {
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "title": "Verificationstrategies",
+              "type": "array"
+            },
+            "modelDigests": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Modeldigests",
+              "type": "array"
+            },
+            "maxUnitsPerTask": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Maxunitspertask",
+              "type": "integer"
+            },
+            "available": {
+              "default": true,
+              "title": "Available",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "peerId",
+            "paymentAddress",
+            "verificationStrategies"
+          ],
+          "title": "ValidatorCapabilities",
+          "type": "object"
+        },
+        "VerificationAssignment": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "VerificationAssignment",
+              "default": "VerificationAssignment",
+              "title": "Kind",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "commitmentRoot": {
+              "title": "Commitmentroot",
+              "type": "string"
+            },
+            "randomnessRound": {
+              "minimum": 1,
+              "title": "Randomnessround",
+              "type": "integer"
+            },
+            "randomnessValue": {
+              "title": "Randomnessvalue",
+              "type": "string"
+            },
+            "randomnessVerified": {
+              "title": "Randomnessverified",
+              "type": "boolean"
+            },
+            "validatorPeerId": {
+              "title": "Validatorpeerid",
+              "type": "string"
+            },
+            "unitIds": {
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "title": "Unitids",
+              "type": "array"
+            },
+            "assignmentIndex": {
+              "minimum": 0,
+              "title": "Assignmentindex",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "taskId",
+            "commitmentRoot",
+            "randomnessRound",
+            "randomnessValue",
+            "randomnessVerified",
+            "validatorPeerId",
+            "unitIds",
+            "assignmentIndex"
+          ],
+          "title": "VerificationAssignment",
+          "type": "object"
+        },
+        "VerificationDecision": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "VerificationDecision",
+              "default": "VerificationDecision",
+              "title": "Kind",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "outcome": {
+              "enum": [
+                "VERIFIED",
+                "FAILED",
+                "INCONCLUSIVE",
+                "DISPUTED"
+              ],
+              "title": "Outcome",
+              "type": "string"
+            },
+            "reasonCode": {
+              "title": "Reasoncode",
+              "type": "string"
+            },
+            "explanation": {
+              "title": "Explanation",
+              "type": "string"
+            },
+            "acceptedReceiptIds": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Acceptedreceiptids",
+              "type": "array"
+            },
+            "rejectedReceiptIds": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Rejectedreceiptids",
+              "type": "array"
+            },
+            "auditRequired": {
+              "title": "Auditrequired",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "taskId",
+            "outcome",
+            "reasonCode",
+            "explanation",
+            "acceptedReceiptIds",
+            "rejectedReceiptIds",
+            "auditRequired"
+          ],
+          "title": "VerificationDecision",
+          "type": "object"
+        },
+        "VerificationReceipt": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "VerificationReceipt",
+              "default": "VerificationReceipt",
+              "title": "Kind",
+              "type": "string"
+            },
+            "receiptId": {
+              "title": "Receiptid",
+              "type": "string"
+            },
+            "taskId": {
+              "title": "Taskid",
+              "type": "string"
+            },
+            "commitmentRoot": {
+              "title": "Commitmentroot",
+              "type": "string"
+            },
+            "validatorPeerId": {
+              "title": "Validatorpeerid",
+              "type": "string"
+            },
+            "unitId": {
+              "title": "Unitid",
+              "type": "string"
+            },
+            "result": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "INCONCLUSIVE",
+                "TIMEOUT",
+                "DISPUTE"
+              ],
+              "title": "Result",
+              "type": "string"
+            },
+            "observedOutputHash": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Observedoutputhash"
+            },
+            "evidenceHash": {
+              "title": "Evidencehash",
+              "type": "string"
+            },
+            "merkleProof": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Merkleproof",
+              "type": "array"
+            },
+            "reasonCode": {
+              "title": "Reasoncode",
+              "type": "string"
+            },
+            "modelDigest": {
+              "title": "Modeldigest",
+              "type": "string"
+            },
+            "durationMs": {
+              "minimum": 0,
+              "title": "Durationms",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "receiptId",
+            "taskId",
+            "commitmentRoot",
+            "validatorPeerId",
+            "unitId",
+            "result",
+            "evidenceHash",
+            "merkleProof",
+            "reasonCode",
+            "modelDigest",
+            "durationMs"
+          ],
+          "title": "VerificationReceipt",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "protocolVersion": {
+          "const": "1",
+          "default": "1",
+          "title": "Protocolversion",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "signer": {
+          "title": "Signer",
+          "type": "string"
+        },
+        "nonce": {
+          "title": "Nonce",
+          "type": "string"
+        },
+        "payload": {
+          "discriminator": {
+            "mapping": {
+              "CustomerTask": "#/$defs/CustomerTask",
+              "ExecutionCommitment": "#/$defs/ExecutionCommitment",
+              "ExecutionContract": "#/$defs/ExecutionContract",
+              "FixedPriceQuote": "#/$defs/FixedPriceQuote",
+              "MinerCapabilities": "#/$defs/MinerCapabilities",
+              "MinerOffer": "#/$defs/MinerOffer",
+              "PaymentSettlement": "#/$defs/PaymentSettlement",
+              "SkillBenchmark": "#/$defs/SkillBenchmark",
+              "SkillManifest": "#/$defs/SkillManifest",
+              "SkillRating": "#/$defs/SkillRating",
+              "ValidatorCapabilities": "#/$defs/ValidatorCapabilities",
+              "VerificationAssignment": "#/$defs/VerificationAssignment",
+              "VerificationDecision": "#/$defs/VerificationDecision",
+              "VerificationReceipt": "#/$defs/VerificationReceipt"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SkillManifest"
+            },
+            {
+              "$ref": "#/$defs/SkillBenchmark"
+            },
+            {
+              "$ref": "#/$defs/MinerCapabilities"
+            },
+            {
+              "$ref": "#/$defs/ValidatorCapabilities"
+            },
+            {
+              "$ref": "#/$defs/MinerOffer"
+            },
+            {
+              "$ref": "#/$defs/CustomerTask"
+            },
+            {
+              "$ref": "#/$defs/FixedPriceQuote"
+            },
+            {
+              "$ref": "#/$defs/ExecutionContract"
+            },
+            {
+              "$ref": "#/$defs/ExecutionCommitment"
+            },
+            {
+              "$ref": "#/$defs/VerificationAssignment"
+            },
+            {
+              "$ref": "#/$defs/VerificationReceipt"
+            },
+            {
+              "$ref": "#/$defs/VerificationDecision"
+            },
+            {
+              "$ref": "#/$defs/PaymentSettlement"
+            },
+            {
+              "$ref": "#/$defs/SkillRating"
+            }
+          ],
+          "title": "Payload"
+        },
+        "payloadHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Payloadhash",
+          "type": "string"
+        },
+        "signature": {
+          "pattern": "^0x[0-9a-fA-F]{130}$",
+          "title": "Signature",
+          "type": "string"
+        }
+      },
+      "required": [
+        "signer",
+        "nonce",
+        "payload",
+        "payloadHash",
+        "signature"
+      ],
+      "title": "SignedMessage",
+      "type": "object"
+    }
+  }
+}

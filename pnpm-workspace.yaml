@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+  - contracts
+allowBuilds:
+  esbuild: set this to true or false
+  keccak: set this to true or false

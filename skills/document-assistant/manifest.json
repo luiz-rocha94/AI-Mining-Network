@@ -1,0 +1,34 @@
+{
+  "name": "document-assistant",
+  "version": "1.0.0",
+  "contentHash": "",
+  "skillFile": "SKILL.md",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "customerPrompt": { "type": "string" },
+      "documentName": { "type": "string" },
+      "documentText": { "type": "string" }
+    },
+    "required": ["customerPrompt", "documentName", "documentText"],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": { "response": { "type": "string" } },
+    "required": ["response"],
+    "additionalProperties": false
+  },
+  "requiredModels": [],
+  "allowedTools": ["ollama.chat"],
+  "verificationStrategy": "per-document",
+  "requirements": {
+    "cpuCores": 1,
+    "ramBytes": 2147483648,
+    "vramBytes": 0,
+    "gpuRequired": false,
+    "networkAccess": false,
+    "timeoutSeconds": 3600
+  },
+  "publicBenchmarkIds": []
+}

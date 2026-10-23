@@ -1,0 +1,28 @@
+{
+  "name": "ai-mining-network",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev:web": "vite --host 127.0.0.1",
+    "build:web": "vite build",
+    "test:web": "node --test apps/customer-web/tests/*.test.mjs",
+    "test:contract": "hardhat test --config contracts/hardhat.config.cjs",
+    "test:all": "pnpm test:web && pnpm test:contract && python -m pytest",
+    "demo": "python -m ai_mining_network.cli demo"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "@openzeppelin/merkle-tree": "^1.0.8",
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "ethers": "^6.14.0",
+    "hardhat": "^2.27.0",
+    "solc": "0.8.30",
+    "@vitejs/plugin-react": "^5.0.0",
+    "vite": "^7.0.0",
+    "typescript": "^5.8.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}
+

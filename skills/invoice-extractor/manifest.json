@@ -1,0 +1,39 @@
+{
+  "name": "invoice-extractor",
+  "version": "1.0.0",
+  "contentHash": "sha256:e7b56e1e8d17330cb8241fd8055540ccc3aa7405908aaa03fa75304f5583afa0",
+  "skillFile": "SKILL.md",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "invoiceId": { "type": "string" },
+      "documentText": { "type": "string" }
+    },
+    "required": ["invoiceId", "documentText"],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "invoiceId": { "type": "string" },
+      "supplier": { "type": "string" },
+      "invoiceDate": { "type": "string", "format": "date" },
+      "totalAmount": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]{1,2})?$" },
+      "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+    },
+    "required": ["invoiceId", "supplier", "invoiceDate", "totalAmount", "currency"],
+    "additionalProperties": false
+  },
+  "requiredModels": [],
+  "allowedTools": ["ollama.chat"],
+  "verificationStrategy": "per-document",
+  "requirements": {
+    "cpuCores": 1,
+    "ramBytes": 2147483648,
+    "vramBytes": 0,
+    "gpuRequired": false,
+    "networkAccess": false,
+    "timeoutSeconds": 3600
+  },
+  "publicBenchmarkIds": []
+}

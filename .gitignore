@@ -207,6 +207,14 @@ tempCodeRunnerFile.py
 
 # Ruff stuff:
 .ruff_cache/
+.test-temp/
+amn-test-*/
+.amn/
+node_modules/
+.hardhat-cache/
+.hardhat-artifacts/
+.hardhat-profile/
+dist/
 
 # PyPI configuration file
 .pypirc

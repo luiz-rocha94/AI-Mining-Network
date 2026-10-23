@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="440" viewBox="0 0 780 440">
+<rect width="100%" height="100%" fill="#101a17"/>
+<text x="75" y="24" fill="#edf3ef" font-family="Arial" font-size="16">Fraud detection probability: uniform sampling, N = 100</text>
+<line x1="75" y1="360.0" x2="715" y2="360.0" stroke="#2b3b34"/>
+<text x="63" y="364.0" text-anchor="end" fill="#9dac9f" font-size="10">0%</text>
+<line x1="75" y1="296.0" x2="715" y2="296.0" stroke="#2b3b34"/>
+<text x="63" y="300.0" text-anchor="end" fill="#9dac9f" font-size="10">20%</text>
+<line x1="75" y1="232.0" x2="715" y2="232.0" stroke="#2b3b34"/>
+<text x="63" y="236.0" text-anchor="end" fill="#9dac9f" font-size="10">40%</text>
+<line x1="75" y1="168.0" x2="715" y2="168.0" stroke="#2b3b34"/>
+<text x="63" y="172.0" text-anchor="end" fill="#9dac9f" font-size="10">60%</text>
+<line x1="75" y1="104.0" x2="715" y2="104.0" stroke="#2b3b34"/>
+<text x="63" y="108.0" text-anchor="end" fill="#9dac9f" font-size="10">80%</text>
+<line x1="75" y1="40.0" x2="715" y2="40.0" stroke="#2b3b34"/>
+<text x="63" y="44.0" text-anchor="end" fill="#9dac9f" font-size="10">100%</text>
+<line x1="75.0" y1="40" x2="75.0" y2="360" stroke="#202f29"/>
+<text x="75.0" y="380" text-anchor="middle" fill="#9dac9f" font-size="10">0</text>
+<line x1="203.0" y1="40" x2="203.0" y2="360" stroke="#202f29"/>
+<text x="203.0" y="380" text-anchor="middle" fill="#9dac9f" font-size="10">20</text>
+<line x1="331.0" y1="40" x2="331.0" y2="360" stroke="#202f29"/>
+<text x="331.0" y="380" text-anchor="middle" fill="#9dac9f" font-size="10">40</text>
+<line x1="459.0" y1="40" x2="459.0" y2="360" stroke="#202f29"/>
+<text x="459.0" y="380" text-anchor="middle" fill="#9dac9f" font-size="10">60</text>
+<line x1="587.0" y1="40" x2="587.0" y2="360" stroke="#202f29"/>
+<text x="587.0" y="380" text-anchor="middle" fill="#9dac9f" font-size="10">80</text>
+<line x1="715.0" y1="40" x2="715.0" y2="360" stroke="#202f29"/>
+<text x="715.0" y="380" text-anchor="middle" fill="#9dac9f" font-size="10">100</text>
+<polyline points="75.0,360.0 107.0,344.0 139.0,328.0 171.0,312.0 203.0,296.0 235.0,280.0 267.0,264.0 299.0,248.0 331.0,232.0 363.0,216.0 395.0,200.0 427.0,184.0 459.0,168.0 491.0,152.0 523.0,136.0 555.0,120.0 587.0,104.0 619.0,88.0 651.0,72.0 683.0,56.0 715.0,40.0" fill="none" stroke="#4b83d1" stroke-width="3"/>
+<text x="89" y="413" fill="#4b83d1" font-size="11">1 corrupt unit(s)</text>
+<polyline points="75.0,360.0 107.0,286.3 139.0,226.8 171.0,179.4 203.0,142.2 235.0,113.4 267.0,91.4 299.0,75.1 331.0,63.2 363.0,54.8 395.0,49.0 427.0,45.2 459.0,42.8 491.0,41.4 523.0,40.6 555.0,40.2 587.0,40.1 619.0,40.0 651.0,40.0 683.0,40.0 715.0,40.0" fill="none" stroke="#6da64f" stroke-width="3"/>
+<text x="121" y="413" fill="#6da64f" font-size="11">5 corrupt unit(s)</text>
+<polyline points="75.0,360.0 107.0,226.8 139.0,145.8 171.0,97.8 203.0,70.4 235.0,55.3 267.0,47.3 299.0,43.3 331.0,41.4 363.0,40.5 395.0,40.2 427.0,40.1 459.0,40.0 491.0,40.0 523.0,40.0 555.0,40.0 587.0,40.0 619.0,40.0 651.0,40.0 683.0,40.0 715.0,40.0" fill="none" stroke="#d88a39" stroke-width="3"/>
+<text x="161" y="413" fill="#d88a39" font-size="11">10 corrupt unit(s)</text>
+<text x="395.0" y="423" text-anchor="middle" fill="#b8c5bb" font-size="11">Number of distinct units sampled</text>
+<text transform="translate(18 200.0) rotate(-90)" text-anchor="middle" fill="#b8c5bb" font-size="11">Probability of detecting ≥1 corruption</text>
+</svg>
