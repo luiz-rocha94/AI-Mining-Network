@@ -65,6 +65,12 @@ on local test chains until the production review gates below pass.
 
 ## P0 — Reproducible local MVP baseline
 
+**Implementation and automated validation:** PASS on 2026-10-23. The
+maintainer validated P0 on 2026-10-23; P1 is now implemented and awaiting its
+own review. See
+[`docs/reports/p0-local-baseline.md`](docs/reports/p0-local-baseline.md) for
+commands, test results, private artifact locations, and known follow-ups.
+
 **Feature added:** a repeatable reference implementation that contributors can
 run offline and use as the acceptance baseline for all later network adapters.
 
@@ -73,30 +79,36 @@ packages, Ollama adapter, synthetic invoice demo, quote approval, execution
 commitment, local sample verification, signed receipts, reputation separation,
 simulated settlement, and a separately tested local EVM escrow primitive.
 
-- [ ] Reconcile README claims, actual CLI/API behavior, protocol schemas, and
+- [x] Reconcile README claims, actual CLI/API behavior, protocol schemas, and
   tests; clearly mark every local or simulated component.
-- [ ] Ensure one documented install and test path works from a clean checkout
+- [x] Ensure one documented install and test path works from a clean checkout
   without Ollama, network services, production RPC, or real funds.
-- [ ] Keep the 100-invoice synthetic corpus and ground truth reproducible and
+- [x] Keep the 100-invoice synthetic corpus and ground truth reproducible and
   private to the local test workspace.
-- [ ] Record the baseline test and report outputs; open follow-up issues for
+- [x] Record the baseline test and report outputs; record follow-up work for
   any mismatch rather than silently changing acceptance behavior.
 
 **Validate before P1:**
 
-- [ ] Run `pnpm test:all` from a clean environment and save the result in the
+- [x] Run `pnpm test:all` from a clean environment and save the result in the
   release notes/CI artifact.
-- [ ] Run the 100-invoice demo with 30 samples and three validators; confirm
+- [x] Run the 100-invoice demo with 30 samples and three validators; confirm
   the output, commitment, assignments, receipts, decision, and settlement can
   be audited from the emitted records.
-- [ ] Run the fault scenarios for corruption, post-commit tampering, validator
+- [x] Run the fault scenarios for corruption, post-commit tampering, validator
   outage/disagreement, timeout, low customer rating, and repeated settlement.
-- [ ] Confirm the accepted quote remains the charge ceiling and that a low
+- [x] Confirm the accepted quote remains the charge ceiling and that a low
   customer rating cannot change objective miner payment.
 
 **Planned open-source contribution:** existing Ollama, Agent Skills, MCP,
 OpenZeppelin Merkle Tree, and OpenZeppelin Contracts components remain easy to
 exercise locally while adapters are built incrementally.
+
+**P0 follow-up recorded for P2:** the installed `qwen3.5:0.8b` Ollama model
+returned empty structured output during skill benchmarking and was rejected;
+the documented `qwen3:4b-instruct` completed the demo. P2 must cover malformed
+or empty model responses and preflight each model/skill pair. This does not
+change the offline test gate, which runs with Ollama unavailable.
 
 ## P1 — Interoperable protocol identity and message safety
 

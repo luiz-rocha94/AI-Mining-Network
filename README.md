@@ -62,6 +62,17 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
 pnpm install
+```
+
+This Python and pnpm setup is sufficient for the offline test suite. The pnpm
+workspace explicitly permits install scripts only for `esbuild` (which checks
+its platform binary hash) and `keccak` (which has a JavaScript fallback); these
+are required by the web build and local EVM test dependencies.
+
+To run the local inference demo, install Ollama separately and pull a model
+supported by the selected skill:
+
+```powershell
 ollama pull qwen3:4b-instruct
 ```
 

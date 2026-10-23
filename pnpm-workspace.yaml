@@ -3,5 +3,7 @@ packages:
   - packages/*
   - contracts
 allowBuilds:
-  esbuild: set this to true or false
-  keccak: set this to true or false
+  # esbuild installs its platform binary and verifies the package hash.
+  esbuild: true
+  # keccak's node-gyp build has a JavaScript fallback when native build is unavailable.
+  keccak: true
