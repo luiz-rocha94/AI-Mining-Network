@@ -45,11 +45,37 @@
           "title": "Cpucores",
           "type": "integer"
         },
+        "cpuThreads": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cputhreads"
+        },
         "ramBytes": {
           "default": 1073741824,
           "minimum": 1,
           "title": "Rambytes",
           "type": "integer"
+        },
+        "storageBytes": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Storagebytes"
         },
         "vramBytes": {
           "default": 0,
@@ -89,11 +115,37 @@
               "title": "Cpucores",
               "type": "integer"
             },
+            "cpuThreads": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cputhreads"
+            },
             "ramBytes": {
               "default": 1073741824,
               "minimum": 1,
               "title": "Rambytes",
               "type": "integer"
+            },
+            "storageBytes": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Storagebytes"
             },
             "vramBytes": {
               "default": 0,
@@ -826,11 +878,37 @@
               "title": "Cpucores",
               "type": "integer"
             },
+            "cpuThreads": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cputhreads"
+            },
             "ramBytes": {
               "default": 1073741824,
               "minimum": 1,
               "title": "Rambytes",
               "type": "integer"
+            },
+            "storageBytes": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Storagebytes"
             },
             "vramBytes": {
               "default": 0,
@@ -1283,6 +1361,221 @@
       "type": "object"
     },
     "ExecutionContract": {
+      "$defs": {
+        "ComputeBackendBinding": {
+          "additionalProperties": false,
+          "description": "Terms accepted by the customer before a compute provider is contacted.",
+          "properties": {
+            "backend": {
+              "enum": [
+                "local-fixture",
+                "golem-yagna"
+              ],
+              "title": "Backend",
+              "type": "string"
+            },
+            "selectedOfferId": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Selectedofferid",
+              "type": "string"
+            },
+            "selectedProviderId": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Selectedproviderid",
+              "type": "string"
+            },
+            "offerSnapshotHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Offersnapshothash",
+              "type": "string"
+            },
+            "acceptedQuoteTotalAtomic": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Acceptedquotetotalatomic",
+              "type": "integer"
+            },
+            "executionRewardAtomic": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Executionrewardatomic",
+              "type": "integer"
+            },
+            "currency": {
+              "$ref": "#/$defs/Currency"
+            },
+            "runtimeName": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Runtimename",
+              "type": "string"
+            },
+            "runtimeVersion": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Runtimeversion",
+              "type": "string"
+            },
+            "imageDigest": {
+              "anyOf": [
+                {
+                  "pattern": "^sha3-224:[0-9a-f]{56}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Imagedigest"
+            },
+            "inputHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Inputhash",
+              "type": "string"
+            },
+            "resourceRequirements": {
+              "$ref": "#/$defs/ResourceRequirements"
+            },
+            "deadline": {
+              "format": "date-time",
+              "title": "Deadline",
+              "type": "string"
+            },
+            "nativeCostCapGlm": {
+              "anyOf": [
+                {
+                  "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,18})?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Nativecostcapglm"
+            }
+          },
+          "required": [
+            "backend",
+            "selectedOfferId",
+            "selectedProviderId",
+            "offerSnapshotHash",
+            "acceptedQuoteTotalAtomic",
+            "executionRewardAtomic",
+            "currency",
+            "runtimeName",
+            "runtimeVersion",
+            "inputHash",
+            "resourceRequirements",
+            "deadline"
+          ],
+          "title": "ComputeBackendBinding",
+          "type": "object"
+        },
+        "Currency": {
+          "additionalProperties": false,
+          "properties": {
+            "chainId": {
+              "exclusiveMinimum": 0,
+              "title": "Chainid",
+              "type": "integer"
+            },
+            "tokenAddress": {
+              "title": "Tokenaddress",
+              "type": "string"
+            },
+            "decimals": {
+              "maximum": 36,
+              "minimum": 0,
+              "title": "Decimals",
+              "type": "integer"
+            },
+            "symbol": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          "required": [
+            "chainId",
+            "tokenAddress",
+            "decimals",
+            "symbol"
+          ],
+          "title": "Currency",
+          "type": "object"
+        },
+        "ResourceRequirements": {
+          "additionalProperties": false,
+          "properties": {
+            "cpuCores": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Cpucores",
+              "type": "integer"
+            },
+            "cpuThreads": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cputhreads"
+            },
+            "ramBytes": {
+              "default": 1073741824,
+              "minimum": 1,
+              "title": "Rambytes",
+              "type": "integer"
+            },
+            "storageBytes": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Storagebytes"
+            },
+            "vramBytes": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vrambytes",
+              "type": "integer"
+            },
+            "gpuRequired": {
+              "default": false,
+              "title": "Gpurequired",
+              "type": "boolean"
+            },
+            "networkAccess": {
+              "default": false,
+              "title": "Networkaccess",
+              "type": "boolean"
+            },
+            "timeoutSeconds": {
+              "default": 600,
+              "maximum": 86400,
+              "minimum": 1,
+              "title": "Timeoutseconds",
+              "type": "integer"
+            }
+          },
+          "title": "ResourceRequirements",
+          "type": "object"
+        }
+      },
       "additionalProperties": false,
       "properties": {
         "kind": {
@@ -1325,6 +1618,17 @@
         "idempotencyKey": {
           "title": "Idempotencykey",
           "type": "string"
+        },
+        "backendBinding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ComputeBackendBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -1942,6 +2246,119 @@
           "title": "BenchmarkMeasurementProvenance",
           "type": "object"
         },
+        "ComputeBackendBinding": {
+          "additionalProperties": false,
+          "description": "Terms accepted by the customer before a compute provider is contacted.",
+          "properties": {
+            "backend": {
+              "enum": [
+                "local-fixture",
+                "golem-yagna"
+              ],
+              "title": "Backend",
+              "type": "string"
+            },
+            "selectedOfferId": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Selectedofferid",
+              "type": "string"
+            },
+            "selectedProviderId": {
+              "maxLength": 256,
+              "minLength": 1,
+              "title": "Selectedproviderid",
+              "type": "string"
+            },
+            "offerSnapshotHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Offersnapshothash",
+              "type": "string"
+            },
+            "acceptedQuoteTotalAtomic": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Acceptedquotetotalatomic",
+              "type": "integer"
+            },
+            "executionRewardAtomic": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Executionrewardatomic",
+              "type": "integer"
+            },
+            "currency": {
+              "$ref": "#/$defs/Currency"
+            },
+            "runtimeName": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Runtimename",
+              "type": "string"
+            },
+            "runtimeVersion": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Runtimeversion",
+              "type": "string"
+            },
+            "imageDigest": {
+              "anyOf": [
+                {
+                  "pattern": "^sha3-224:[0-9a-f]{56}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Imagedigest"
+            },
+            "inputHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "title": "Inputhash",
+              "type": "string"
+            },
+            "resourceRequirements": {
+              "$ref": "#/$defs/ResourceRequirements"
+            },
+            "deadline": {
+              "format": "date-time",
+              "title": "Deadline",
+              "type": "string"
+            },
+            "nativeCostCapGlm": {
+              "anyOf": [
+                {
+                  "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,18})?$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Nativecostcapglm"
+            }
+          },
+          "required": [
+            "backend",
+            "selectedOfferId",
+            "selectedProviderId",
+            "offerSnapshotHash",
+            "acceptedQuoteTotalAtomic",
+            "executionRewardAtomic",
+            "currency",
+            "runtimeName",
+            "runtimeVersion",
+            "inputHash",
+            "resourceRequirements",
+            "deadline"
+          ],
+          "title": "ComputeBackendBinding",
+          "type": "object"
+        },
         "Currency": {
           "additionalProperties": false,
           "properties": {
@@ -2224,6 +2641,17 @@
             "idempotencyKey": {
               "title": "Idempotencykey",
               "type": "string"
+            },
+            "backendBinding": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ComputeBackendBinding"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
             }
           },
           "required": [
@@ -2759,11 +3187,37 @@
               "title": "Cpucores",
               "type": "integer"
             },
+            "cpuThreads": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Cputhreads"
+            },
             "ramBytes": {
               "default": 1073741824,
               "minimum": 1,
               "title": "Rambytes",
               "type": "integer"
+            },
+            "storageBytes": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Storagebytes"
             },
             "vramBytes": {
               "default": 0,
@@ -3550,6 +4004,119 @@
         "signature"
       ],
       "title": "SignedMessage",
+      "type": "object"
+    },
+    "ComputeBackendBinding": {
+      "additionalProperties": false,
+      "description": "Terms accepted by the customer before a compute provider is contacted.",
+      "properties": {
+        "backend": {
+          "enum": [
+            "local-fixture",
+            "golem-yagna"
+          ],
+          "title": "Backend",
+          "type": "string"
+        },
+        "selectedOfferId": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Selectedofferid",
+          "type": "string"
+        },
+        "selectedProviderId": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Selectedproviderid",
+          "type": "string"
+        },
+        "offerSnapshotHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Offersnapshothash",
+          "type": "string"
+        },
+        "acceptedQuoteTotalAtomic": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Acceptedquotetotalatomic",
+          "type": "integer"
+        },
+        "executionRewardAtomic": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Executionrewardatomic",
+          "type": "integer"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "runtimeName": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Runtimename",
+          "type": "string"
+        },
+        "runtimeVersion": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Runtimeversion",
+          "type": "string"
+        },
+        "imageDigest": {
+          "anyOf": [
+            {
+              "pattern": "^sha3-224:[0-9a-f]{56}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Imagedigest"
+        },
+        "inputHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Inputhash",
+          "type": "string"
+        },
+        "resourceRequirements": {
+          "$ref": "#/$defs/ResourceRequirements"
+        },
+        "deadline": {
+          "format": "date-time",
+          "title": "Deadline",
+          "type": "string"
+        },
+        "nativeCostCapGlm": {
+          "anyOf": [
+            {
+              "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,18})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nativecostcapglm"
+        }
+      },
+      "required": [
+        "backend",
+        "selectedOfferId",
+        "selectedProviderId",
+        "offerSnapshotHash",
+        "acceptedQuoteTotalAtomic",
+        "executionRewardAtomic",
+        "currency",
+        "runtimeName",
+        "runtimeVersion",
+        "inputHash",
+        "resourceRequirements",
+        "deadline"
+      ],
+      "title": "ComputeBackendBinding",
       "type": "object"
     },
     "Payout": {

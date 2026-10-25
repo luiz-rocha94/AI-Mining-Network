@@ -1386,6 +1386,21 @@ class DemoService:
             # its acceptance timestamp and deadlines have contractual meaning.
             accepted_at = datetime.now(timezone.utc)
             challenge_round = int(time.time()) + 3600
+            task_contract = CustomerTask.model_validate(record["task"])
+            selected_executor = next(
+                (
+                    envelope.payload
+                    for envelope in (
+                        SignedMessage.model_validate(raw)
+                        for raw in record.get("offerMessages", [])
+                    )
+                    if isinstance(envelope.payload, MinerOffer)
+                    and envelope.payload.offerId == accepted_quote.executorOfferId
+                ),
+                None,
+            )
+            if selected_executor is None:
+                raise DemoError("selected executor offer is missing from the accepted quote")
             contract = ExecutionContract(
                 contractId=str(uuid4()),
                 taskId=task_id,
@@ -1395,6 +1410,20 @@ class DemoService:
                 commitDeadline=accepted_at + timedelta(minutes=50),
                 challengeRound=challenge_round,
                 idempotencyKey=f"task:{task_id}:settle:v1",
+                backendBinding={
+                    "backend": "local-fixture",
+                    "selectedOfferId": selected_executor.offerId,
+                    "selectedProviderId": selected_executor.peerId,
+                    "offerSnapshotHash": accepted_quote.offerSnapshotHash,
+                    "acceptedQuoteTotalAtomic": accepted_quote.totalAtomic,
+                    "executionRewardAtomic": accepted_quote.executionRewardAtomic,
+                    "currency": accepted_quote.currency,
+                    "runtimeName": "amn-local-worker",
+                    "runtimeVersion": "0.1.0",
+                    "inputHash": task_contract.inputSetHash,
+                    "resourceRequirements": selected_executor.requirements,
+                    "deadline": task_contract.deadline,
+                },
             )
             contract_message = create_message(contract, record["customerPrivateKey"])
             if contract_message.signer.lower() != record["taskMessage"][

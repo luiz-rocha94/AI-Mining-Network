@@ -35,7 +35,9 @@ class Currency(WireModel):
 
 class ResourceRequirements(WireModel):
     cpuCores: int = Field(default=1, ge=1)
+    cpuThreads: int | None = Field(default=None, ge=1)
     ramBytes: int = Field(default=1_073_741_824, ge=1)
+    storageBytes: int | None = Field(default=None, ge=1)
     vramBytes: int = Field(default=0, ge=0)
     gpuRequired: bool = False
     networkAccess: bool = False
@@ -252,6 +254,46 @@ class FixedPriceQuote(WireModel):
         return self
 
 
+class ComputeBackendBinding(WireModel):
+    """Terms accepted by the customer before a compute provider is contacted."""
+
+    backend: Literal["local-fixture", "golem-yagna"]
+    selectedOfferId: str = Field(min_length=1, max_length=256)
+    selectedProviderId: str = Field(min_length=1, max_length=256)
+    offerSnapshotHash: str = Field(pattern=SHA256_PATTERN)
+    acceptedQuoteTotalAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
+    executionRewardAtomic: int = Field(strict=True, ge=0, le=MAX_ATOMIC)
+    currency: Currency
+    runtimeName: str = Field(min_length=1, max_length=128)
+    runtimeVersion: str = Field(min_length=1, max_length=128)
+    imageDigest: str | None = Field(default=None, pattern=r"^sha3-224:[0-9a-f]{56}$")
+    inputHash: str = Field(pattern=SHA256_PATTERN)
+    resourceRequirements: ResourceRequirements
+    deadline: datetime
+    # Golem bills in its configured native token. This string is an exact decimal
+    # GLM cap; it is deliberately separate from AMN's accepted ERC-20 quote.
+    nativeCostCapGlm: str | None = Field(
+        default=None, pattern=r"^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,18})?$"
+    )
+
+    @model_validator(mode="after")
+    def validate_backend_terms(self):
+        if self.deadline.tzinfo is None or self.deadline.utcoffset() != timedelta(0):
+            raise ValueError("compute backend deadline must be timezone-aware UTC")
+        if self.backend == "golem-yagna":
+            if self.imageDigest is None:
+                raise ValueError("Golem dispatch requires a pinned SHA3-224 VM image digest")
+            if (
+                self.nativeCostCapGlm is None
+                or not math.isfinite(float(self.nativeCostCapGlm))
+                or float(self.nativeCostCapGlm) <= 0
+            ):
+                raise ValueError("Golem dispatch requires a positive native GLM spend cap")
+        elif self.imageDigest is not None or self.nativeCostCapGlm is not None:
+            raise ValueError("local fixture bindings cannot claim Golem image or payment terms")
+        return self
+
+
 class ExecutionContract(WireModel):
     kind: Literal["ExecutionContract"] = "ExecutionContract"
     contractId: str
@@ -262,6 +304,9 @@ class ExecutionContract(WireModel):
     commitDeadline: datetime
     challengeRound: int = Field(ge=1)
     idempotencyKey: str
+    # Optional only for historical v2 receipts; all new AMN executions populate
+    # the binding so backend selection and quote terms are signed before dispatch.
+    backendBinding: ComputeBackendBinding | None = None
 
 
 class ExecutionUnit(WireModel):

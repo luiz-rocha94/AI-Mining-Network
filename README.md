@@ -2,7 +2,7 @@
 
 Open-source reference MVP for fixed-price AI jobs with partitioned output commitments, post-commit sample verification, signed evidence, and idempotent settlement.
 
-> **Status: local development MVP; not a production decentralized network.** The local customer workflow executes on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. P3 libp2p, P4 Helia/IPFS, and the P5 OrbitDB public registry have tested local adapters, including an OrbitDB peer sharing the P3 libp2p node with P4 Helia; these adapters are not wired into the customer/miner task runtime. P6 now provides signed benchmark observations, configurable aggregation, compatible-offer selection, and fixed quotes, but the live UI still uses local fixture/rate-card offers. Helia has no configured public DHT/bootstrap network here. Golem, verified drand randomness, and EAS remain unintegrated. No real funds or proprietary token are used.
+> **Status: local development MVP; not a production decentralized network.** The local customer workflow executes on one host. Ollama is a real local inference adapter; local SQLite, a simulated randomness beacon, and Python settlement are development adapters. A Hardhat test chain runs an OpenZeppelin escrow contract independently from the Python demo. P3 libp2p, P4 Helia/IPFS, and the P5 OrbitDB public registry have tested local adapters, including an OrbitDB peer sharing the P3 libp2p node with P4 Helia; these adapters are not wired into the customer/miner task runtime. P6 provides signed benchmark observations, configurable aggregation, compatible-offer selection, and fixed quotes, but the live UI still uses local fixture/rate-card offers. P7 adds a Golem Yagna requestor adapter with SDK-shaped tests, but it is not connected to quote creation and has not been live-tested on Linux. Helia has no configured public DHT/bootstrap network here. Verified drand randomness and EAS remain unintegrated. No real funds or proprietary token are used.
 
 ## What is implemented
 
@@ -48,7 +48,7 @@ flowchart LR
   REG --> M
 ```
 
-See [architecture](docs/architecture/architecture.md), [protocol](docs/protocol.md), [security model](docs/security/threat-model.md), and the [integration matrix](docs/architecture/integration-matrix.md).
+See [architecture](docs/architecture/architecture.md), [protocol](docs/protocol.md), [security model](docs/security/threat-model.md), the [integration matrix](docs/architecture/integration-matrix.md), and the [P7 Golem adapter design](docs/architecture/golem-yagna.md).
 
 ## Requirements
 
@@ -221,7 +221,7 @@ Outputs are in [`docs/reports`](docs/reports/): fixture protocol timings, proof/
 | MCP Python SDK | Tested MCP v2 skill server; install with `[mcp]` on Python 3.11+ |
 | OpenZeppelin Merkle Tree | Python implementation cross-checked against a Node golden vector |
 | OpenZeppelin Contracts / EVM | Local escrow contract and Hardhat tests; not connected to Python settlement |
-| Golem Yagna | Not connected; support constraints and adapter requirements documented |
+| Golem Yagna | `@ai-mining-network/golem` requestor adapter and offline SDK-shaped tests; not connected to customer quote creation, no pinned VM image, and no live Yagna validation |
 | Helia/IPFS | Persistent local peer storage, public pinning, encrypted private artifacts, integrity checks, and retention are tested; not connected to task runtime, and no public DHT is configured |
 | OrbitDB | Not connected; local public registry adapter is SQLite |
 | libp2p | Standalone peer-transport package with TCP/Noise, signed public gossip, encrypted direct RPC, and local event sync; not yet wired into the workflow runtime |

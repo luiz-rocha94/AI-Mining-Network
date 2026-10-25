@@ -451,7 +451,9 @@ def _validate_manifest(manifest: dict, root: Path, frontmatter: dict) -> dict:
     manifest["requiredModels"] = manifest.get("requiredModels", [])
     manifest["publicBenchmarkIds"] = manifest.get("publicBenchmarkIds", [])
     manifest["skillFile"] = "SKILL.md"
-    manifest["requirements"] = requirements.model_dump(mode="json")
+    # Omit unset optional capabilities so adding a new optional resource field
+    # does not silently change the content hash of existing skill packages.
+    manifest["requirements"] = requirements.model_dump(mode="json", exclude_none=True)
     manifest["executionMode"] = "declarative"
     manifest["description"] = frontmatter["description"]
     return manifest

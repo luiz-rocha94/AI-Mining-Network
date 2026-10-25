@@ -7,6 +7,8 @@ function storageKey(value) {
 }
 
 export class FileReplayStore {
+  durable = true;
+
   constructor(directory) {
     this.directory = directory;
   }

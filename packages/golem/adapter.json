@@ -1,0 +1,22 @@
+{
+  "protocolVersion": "2",
+  "adapterId": "amn.compute.golem-yagna",
+  "interface": "ComputeBackend",
+  "contractVersion": "1.0.0",
+  "implementation": "@ai-mining-network/golem / @golem-sdk/golem-js@3.11.0",
+  "operations": [
+    { "name": "capabilities", "requestSchema": "ComputeCapabilitiesRequestV2", "responseSchema": "ComputeCapabilitiesResponseV2", "idempotency": "not-applicable", "retryableErrors": ["UNAVAILABLE"] },
+    { "name": "offers", "requestSchema": "ComputeOfferQueryV2", "responseSchema": "ComputeOfferSnapshotV2", "idempotency": "not-applicable", "retryableErrors": ["UNAVAILABLE", "PROVIDER_FAILED"] },
+    { "name": "submit", "requestSchema": "SignedExecutionContractV2", "responseSchema": "ComputeJobV2", "idempotency": "required", "retryableErrors": ["UNAVAILABLE", "OFFER_EXPIRED", "PROVIDER_FAILED", "TIMEOUT"] },
+    { "name": "status", "requestSchema": "ComputeJobIdV2", "responseSchema": "ComputeJobV2", "idempotency": "not-applicable", "retryableErrors": ["UNAVAILABLE"] },
+    { "name": "cancel", "requestSchema": "ComputeCancelV2", "responseSchema": "ComputeJobV2", "idempotency": "required", "retryableErrors": ["UNAVAILABLE", "PROVIDER_FAILED"] },
+    { "name": "fetchArtifacts", "requestSchema": "ComputeJobIdV2", "responseSchema": "PrivateComputeArtifactsV2", "idempotency": "not-applicable", "retryableErrors": ["ARTIFACT_MISSING", "UNAVAILABLE"] }
+  ],
+  "productionReady": false,
+  "trustNotes": [
+    "Live requestor/provider lifecycle and spend reconciliation have not been validated on supported Linux.",
+    "Yagna allocations cap native GLM spend but do not settle the AMN customer quote.",
+    "The provider can inspect private plaintext input inside its VM; no confidential-computing claim is made.",
+    "The high-level SDK agreement exposes provider identity and rate bounds but not the originating scanned offer serial."
+  ]
+}

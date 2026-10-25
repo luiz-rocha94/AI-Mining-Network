@@ -282,11 +282,44 @@ def test_quote_is_not_an_execution_contract_until_customer_accepts(tmp_path):
     service.accept_quote(task_id)
     record = service._jobs[task_id]
     assert record["contract"]["acceptedAt"]
+    binding = record["contract"]["backendBinding"]
+    assert binding["backend"] == "local-fixture"
+    assert binding["selectedOfferId"] == record["quote"]["executorOfferId"]
+    assert binding["offerSnapshotHash"] == record["quote"]["offerSnapshotHash"]
+    assert binding["acceptedQuoteTotalAtomic"] == record["quote"]["totalAtomic"]
+    assert binding["inputHash"] == record["task"]["inputSetHash"]
     assert verify_message(SignedMessage.model_validate(record["contractMessage"]))
     assert record["contractMessage"]["signer"].lower() == record["taskMessage"]["signer"].lower()
     assert (task_dir / "execution-contract.json").is_file()
     status = wait_for(service, task_id, {"SETTLED", "REFUNDED"})
     assert status["state"] == "SETTLED"
+
+
+def test_golem_contract_binding_requires_pinned_vm_image_and_native_cost_cap():
+    from ai_mining_network.models import ComputeBackendBinding
+
+    base = {
+        "backend": "golem-yagna",
+        "selectedOfferId": "offer-1",
+        "selectedProviderId": "provider-1",
+        "offerSnapshotHash": "sha256:" + "a" * 64,
+        "acceptedQuoteTotalAtomic": 1000,
+        "executionRewardAtomic": 900,
+        "currency": {"chainId": 31337, "tokenAddress": "0x" + "1" * 40, "decimals": 6, "symbol": "TESTUSD"},
+        "runtimeName": "vm",
+        "runtimeVersion": "0.6.0",
+        "imageDigest": "sha3-224:" + "b" * 56,
+        "inputHash": "sha256:" + "c" * 64,
+        "resourceRequirements": {"cpuCores": 2, "ramBytes": 2_147_483_648, "timeoutSeconds": 60},
+        "deadline": "2030-01-01T00:00:00Z",
+        "nativeCostCapGlm": "0.01",
+    }
+    binding = ComputeBackendBinding.model_validate(base)
+    assert binding.imageDigest == base["imageDigest"]
+    with pytest.raises(ValueError, match="pinned SHA3-224"):
+        ComputeBackendBinding.model_validate({**base, "imageDigest": None})
+    with pytest.raises(ValueError, match="positive native GLM"):
+        ComputeBackendBinding.model_validate({**base, "nativeCostCapGlm": "0"})
 
 
 def test_consensus_distinguishes_pass_failure_inconclusive_and_conflict():

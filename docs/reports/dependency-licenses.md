@@ -67,7 +67,7 @@ Generated from Python distribution metadata and installed pnpm package manifests
 
 ## Node dependencies
 
-Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(BSD-3-Clause OR GPL-2.0)` 1, `(MIT OR Apache-2.0)` 1, `(MIT OR CC0-1.0)` 3, `(WTFPL OR MIT)` 1, `0BSD` 5, `Apache-2.0` 13, `Apache-2.0 OR MIT` 124, `BSD-2-Clause` 4, `BSD-3-Clause` 18, `BlueOak-1.0.0` 5, `CC-BY-4.0` 1, `ISC` 32, `MIT` 503, `MPL 2.0` 2, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 5, `WTFPL` 1, `WTFPL OR ISC` 1.
+Resolved packages: **741**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `(BSD-3-Clause OR GPL-2.0)` 1, `(MIT OR Apache-2.0)` 1, `(MIT OR CC0-1.0)` 3, `(WTFPL OR MIT)` 1, `0BSD` 5, `Apache-2.0` 15, `Apache-2.0 OR MIT` 124, `BSD-2-Clause` 4, `BSD-3-Clause` 18, `BlueOak-1.0.0` 5, `CC-BY-4.0` 1, `ISC` 32, `LGPL-3.0` 2, `MIT` 513, `MPL 2.0` 2, `MPL-2.0` 5, `Python-2.0` 1, `UNKNOWN — review required` 5, `WTFPL` 1, `WTFPL OR ISC` 1.
 
 | Package | Version | License metadata | Direct dependency |
 |---|---:|---|---|
@@ -75,6 +75,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@achingbrain/nat-port-mapper` | 4.0.5 | Apache-2.0 OR MIT | transitive |
 | `@achingbrain/ssdp` | 4.2.4 | Apache-2.0 OR MIT | transitive |
 | `@adraffy/ens-normalize` | 1.11.1 | MIT | transitive |
+| `@ai-mining-network/golem` | 0.1.0 | MIT | yes |
 | `@ai-mining-network/networking` | 0.1.0 | UNKNOWN — review required | transitive |
 | `@ai-mining-network/protocol` | 2.0.0 | UNKNOWN — review required | transitive |
 | `@ai-mining-network/registry` | 0.1.0 | UNKNOWN — review required | transitive |
@@ -131,6 +132,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `@ethersproject/transactions` | 5.8.0 | MIT | transitive |
 | `@ethersproject/web` | 5.8.0 | MIT | transitive |
 | `@fastify/busboy` | 2.1.1 | MIT | transitive |
+| `@golem-sdk/golem-js` | 3.11.0 | LGPL-3.0 | yes |
 | `@helia/bitswap` | 4.0.20 | Apache-2.0 OR MIT | yes |
 | `@helia/delegated-routing-client` | 1.0.7 | Apache-2.0 OR MIT | transitive |
 | `@helia/delegated-routing-v1-http-api-client` | 9.0.2 | Apache-2.0 OR MIT | transitive |
@@ -330,6 +332,8 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `argparse` | 2.0.1 | Python-2.0 | transitive |
 | `asap` | 2.0.6 | MIT | transitive |
 | `asn1js` | 3.1.0 | BSD-3-Clause | transitive |
+| `async-lock` | 1.4.1 | MIT | transitive |
+| `async-retry` | 1.3.3 | MIT | transitive |
 | `asynckit` | 0.4.0 | MIT | transitive |
 | `axios` | 1.20.0 | MIT | transitive |
 | `balanced-match` | 1.0.2 | MIT | transitive |
@@ -390,6 +394,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `debug` | 4.3.4 | MIT | transitive |
 | `debug` | 4.4.3 | MIT | transitive |
 | `decamelize` | 4.0.0 | MIT | transitive |
+| `decimal.js-light` | 2.5.1 | MIT | transitive |
 | `define-lazy-prop` | 2.0.0 | MIT | transitive |
 | `delay` | 7.0.0 | MIT | transitive |
 | `delayed-stream` | 1.0.0 | MIT | transitive |
@@ -429,6 +434,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `event-target-shim` | 5.0.1 | MIT | transitive |
 | `eventemitter3` | 5.0.4 | MIT | transitive |
 | `events` | 3.3.0 | MIT | transitive |
+| `eventsource` | 2.0.2 | MIT | transitive |
 | `exponential-backoff` | 3.1.3 | Apache-2.0 | transitive |
 | `fast-deep-equal` | 3.1.3 | MIT | transitive |
 | `fast-glob` | 3.3.3 | MIT | transitive |
@@ -441,6 +447,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `finalhandler` | 1.1.2 | MIT | transitive |
 | `find-up` | 5.0.0 | MIT | transitive |
 | `flat` | 5.0.2 | BSD-3-Clause | transitive |
+| `flatbuffers` | 24.12.23 | Apache-2.0 | transitive |
 | `flow-enums-runtime` | 0.0.6 | MIT | transitive |
 | `flow-estree` | 0.327.0 | MIT | transitive |
 | `flow-estree` | 0.331.0 | MIT | transitive |
@@ -490,6 +497,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `interface-store` | 8.0.0 | Apache-2.0 OR MIT | transitive |
 | `invariant` | 2.2.4 | MIT | transitive |
 | `io-ts` | 1.10.4 | MIT | transitive |
+| `ip-num` | 1.6.2 | MIT | transitive |
 | `ip-regex` | 5.0.0 | MIT | transitive |
 | `ipfs-unixfs-exporter` | 16.2.3 | Apache-2.0 OR MIT | transitive |
 | `ipfs-unixfs-importer` | 17.1.1 | Apache-2.0 OR MIT | transitive |
@@ -545,6 +553,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `jest-validate` | 29.7.0 | MIT | transitive |
 | `jest-worker` | 29.7.0 | MIT | transitive |
 | `js-sha3` | 0.8.0 | MIT | transitive |
+| `js-sha3` | 0.9.3 | MIT | transitive |
 | `js-tokens` | 4.0.0 | MIT | transitive |
 | `js-yaml` | 4.3.2 | MIT | transitive |
 | `jsc-safe-url` | 0.2.4 | 0BSD | transitive |
@@ -695,9 +704,11 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `resolve` | 1.17.0 | MIT | transitive |
 | `retimeable-signal` | 1.0.1 | Apache-2.0 OR MIT | transitive |
 | `retimer` | 3.0.0 | MIT | transitive |
+| `retry` | 0.13.1 | MIT | transitive |
 | `reusify` | 1.1.0 | MIT | transitive |
 | `rollup` | 4.64.12 | MIT | transitive |
 | `run-parallel` | 1.2.0 | MIT | transitive |
+| `rxjs` | 7.8.2 | Apache-2.0 | transitive |
 | `safe-buffer` | 5.2.1 | MIT | transitive |
 | `safer-buffer` | 2.1.2 | MIT | transitive |
 | `sanitize-filename` | 1.6.4 | WTFPL OR ISC | transitive |
@@ -744,6 +755,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `timeout-abort-controller` | 3.0.0 | MIT | transitive |
 | `tinyglobby` | 0.2.17 | MIT | transitive |
 | `tmp` | 0.0.33 | MIT | transitive |
+| `tmp` | 0.2.7 | MIT | transitive |
 | `to-regex-range` | 5.0.1 | MIT | transitive |
 | `toidentifier` | 1.0.1 | MIT | transitive |
 | `tr46` | 0.0.3 | MIT | transitive |
@@ -773,6 +785,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `utf8-codec` | 1.0.0 | MIT | transitive |
 | `util-deprecate` | 1.0.2 | MIT | transitive |
 | `utils-merge` | 1.0.1 | MIT | transitive |
+| `uuid` | 10.0.0 | MIT | transitive |
 | `uuid` | 8.3.2 | MIT | transitive |
 | `uuid` | 9.0.1 | MIT | transitive |
 | `vite` | 7.3.7 | MIT | yes |
@@ -793,6 +806,7 @@ Resolved packages: **727**. License metadata counts: `(Apache-2.0 AND MIT)` 1, `
 | `xml2js` | 0.6.2 | MIT | transitive |
 | `xmlbuilder` | 11.0.1 | MIT | transitive |
 | `y18n` | 5.0.8 | ISC | transitive |
+| `ya-ts-client` | 1.1.3 | LGPL-3.0 | transitive |
 | `yallist` | 3.1.1 | ISC | transitive |
 | `yargs-parser` | 21.1.1 | ISC | transitive |
 | `yargs-unparser` | 2.0.0 | MIT | transitive |

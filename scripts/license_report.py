@@ -25,6 +25,7 @@ PYTHON_DIRECT = [
     "mcp",
 ]
 NODE_DIRECT = [
+    "@ai-mining-network/golem",
     "@ipld/dag-cbor",
     "@orbitdb/core",
     "@helia/bitswap",
@@ -61,6 +62,7 @@ NODE_DIRECT = [
     "ajv",
     "ajv-formats",
     "libp2p",
+    "@golem-sdk/golem-js",
 ]
 
 

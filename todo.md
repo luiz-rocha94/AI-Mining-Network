@@ -374,30 +374,54 @@ prove that inference occurred or that an answer is factually correct.
 
 ## P7 — Golem Yagna decentralized compute backend
 
-**Feature added:** tasks can be dispatched to a real provider marketplace
-through the provider-neutral `ComputeBackend` contract.
+**Feature added:** an SDK-backed Golem Yagna requestor adapter now implements
+the provider-neutral `ComputeBackend` seam. The adapter and offline mock
+contracts are implemented; P7 is not yet live-validated or wired into the
+customer quote workflow.
 
-- [ ] Implement Golem Yagna requestor integration only against its current
-  documented APIs; map capabilities, offers, execution lifecycle, artifacts,
-  timeout, cancellation, and provider failure into AMN states.
-- [ ] Validate supported OS, architecture, runtime/image, KVM, GPU availability,
-  account/payment model, and provider restrictions on a supported Linux setup.
-  Do not claim Windows provider or arbitrary consumer GPU support.
-- [ ] Bind selected offer, cost, runtime/image digest, resource limits, and
-  deadline into the signed execution contract before dispatch.
-- [ ] Retain a local fake backend for deterministic offline and fault tests;
-  production mode must report unavailable instead of silently falling back.
+- [x] Implement Golem Yagna requestor operations using the pinned
+  `@golem-sdk/golem-js@3.11.0` API: offer scanning, provider/runtime/rate
+  filtering, VM resource rental, private input transfer, worker execution,
+  artifact retrieval, cancellation, timeout, cost reconciliation and structured
+  provider failures. SDK-shaped tests do not count as a live integration test.
+- [x] Check platform, runtime, image, resource, GPU and payment limitations
+  against current Golem docs and encode host/runtime guards. Live account,
+  provider/KVM and payment behavior remain unvalidated on supported Linux.
+- [x] Add a signed backend binding with selected offer/provider snapshot hash,
+  accepted AMN quote and execution amounts, runtime/image digest, input
+  manifest hash, resource requirements, deadline and (for Golem) a separate
+  exact-decimal native GLM cap.
+- [x] Retain an explicit local fake with deterministic success, failure,
+  timeout, cancellation, artifact and retry tests. Production selection fails
+  closed without Golem; no silent local fallback is allowed.
+- [ ] Connect Golem offer discovery and provider-native cost estimates to AMN's
+  customer quote API so the customer approves the compute path and complete
+  price before execution. The current app still creates local-fixture quotes.
+- [ ] Build, pin, audit and reproduce the AMN worker GVMI used by the adapter.
+  P7 currently requires a prebuilt image with the fixed worker executable.
+- [ ] Resolve signed protocol compatibility before external deployment: the
+  optional `backendBinding` changes new v2 contract payloads. Coordinate an
+  all-peer schema upgrade or introduce a new protocol version; mixed v2
+  interoperability has not been established.
 
 **Validate before P8:**
 
-- [ ] Contract tests run against the local fake; integration tests run against
-  a real local Yagna requestor/provider on a documented supported host.
-- [ ] Demonstrate offer discovery, successful execution, result retrieval,
-  provider disappearance, cost/offer change, cancellation, timeout, and retry.
-- [ ] Reconcile Yagna cost with the accepted AMN quote and test idempotent
-  recovery from duplicate or delayed lifecycle events.
-- [ ] Record exact versions, OS prerequisites, limitations, and reproduced
-  commands; no integration is marked complete from mocks alone.
+- [x] Offline contracts exercise the local fake and a Yagna-shaped SDK mock for
+  signed contract admission, offer changes, provider matching, success,
+  artifact retrieval, native allocation caps, and idempotent retries.
+- [ ] Run offer discovery, successful execution, result retrieval, provider
+  disappearance, cost/offer change, cancellation, timeout and retry against a
+  real Yagna requestor and provider on supported Linux.
+- [ ] Integrate the Yagna GLM cap into the accepted AMN quote using an explicit
+  price-conversion/risk policy, then reconcile actual Yagna cost with that
+  quote. Mock tests only reconcile Yagna spend against the signed native cap.
+- [ ] Test crash recovery and duplicate/delayed lifecycle events against the
+  live Yagna agreement and allocation APIs. Current local job/replay journals
+  prevent duplicate dispatch but require operator reconciliation after restart.
+- [x] Record SDK version, platform constraints, payment model, image contract,
+  limitations and reproducible offline commands in the P7 README and design.
+- [ ] Reproduce the Golem setup and all live lifecycle commands on supported
+  Linux. The current Windows host has no Yagna command or provider service.
 
 **Planned open-source contribution:** Golem Yagna supplies decentralized
 compute offers and provider execution where its documented runtime and

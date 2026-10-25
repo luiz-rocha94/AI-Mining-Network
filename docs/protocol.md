@@ -1,5 +1,12 @@
 # Protocol v2
 
+P7 adds an optional `ExecutionContract.backendBinding` for local integration
+work. This changes the signed payload of newly created contracts; historical
+contracts may omit it. There is no production v2 peer network yet. Before
+external peers deploy this field, coordinate an all-peer schema upgrade or
+introduce a new protocol version. Mixed v2 peers must not assume that they can
+sign or verify the same contract payload during this transition.
+
 The earlier P0 envelope was an unreleased local v1 draft. P1 adds signed
 expiry, stable principal identity, key epoch, and new EIP-712 fields, so the
 active runtime uses protocol v2 instead of reinterpreting v1 signatures. The
